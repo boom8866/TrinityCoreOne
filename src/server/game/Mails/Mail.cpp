@@ -19,7 +19,6 @@
 #include "Mail.h"
 #include "AuctionHouseMgr.h"
 #include "BattlegroundMgr.h"
-#include "CalendarMgr.h"
 #include "CharacterCache.h"
 #include "DatabaseEnv.h"
 #include "Item.h"
@@ -56,11 +55,6 @@ MailSender::MailSender(Object* sender, MailStationery stationery) : m_stationery
             TC_LOG_ERROR("misc", "MailSender::MailSender - Mail message contains unexpected sender typeid (%u).", sender->GetTypeId());
             break;
     }
-}
-
-MailSender::MailSender(CalendarEvent* sender)
-    : m_messageType(MAIL_CALENDAR), m_senderId(sender->GetEventId()), m_stationery(MAIL_STATIONERY_DEFAULT) // what stationery we should use here?
-{
 }
 
 MailSender::MailSender(AuctionEntry* sender)

@@ -18527,9 +18527,6 @@ void Player::UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficu
             CharacterDatabase.Execute(stmt);
         }
 
-        if (itr->second.perm)
-            GetSession()->SendCalendarRaidLockout(itr->second.save, false);
-
         itr->second.save->RemovePlayer(this);               // save can become invalid
         m_boundInstances[difficulty].erase(itr++);
     }
@@ -18613,7 +18610,6 @@ void Player::BindToInstance()
     if (!IsGameMaster())
     {
         BindToInstance(mapSave, true, EXTEND_STATE_KEEP);
-        GetSession()->SendCalendarRaidLockout(mapSave, true);
     }
 }
 
