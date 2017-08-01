@@ -23,9 +23,9 @@ Category: commandscripts
 EndScriptData */
 
 #include "ScriptMgr.h"
-#include "AchievementMgr.h"
 #include "Chat.h"
 #include "DatabaseEnv.h"
+#include "DBCStores.h"
 #include "DisableMgr.h"
 #include "Language.h"
 #include "ObjectMgr.h"
@@ -47,7 +47,6 @@ public:
             { "quest",                rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_QUEST,                true, &HandleRemoveDisableQuestCommand,               "" },
             { "map",                  rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_MAP,                  true, &HandleRemoveDisableMapCommand,                 "" },
             { "battleground",         rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_BATTLEGROUND,         true, &HandleRemoveDisableBattlegroundCommand,        "" },
-            { "achievement_criteria", rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_ACHIEVEMENT_CRITERIA, true, &HandleRemoveDisableAchievementCriteriaCommand, "" },
             { "outdoorpvp",           rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_OUTDOORPVP,           true, &HandleRemoveDisableOutdoorPvPCommand,          "" },
             { "vmap",                 rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_VMAP,                 true, &HandleRemoveDisableVmapCommand,                "" },
             { "mmap",                 rbac::RBAC_PERM_COMMAND_DISABLE_REMOVE_MMAP,                 true, &HandleRemoveDisableMMapCommand,                "" },
@@ -58,7 +57,6 @@ public:
             { "quest",                rbac::RBAC_PERM_COMMAND_DISABLE_ADD_QUEST,                true, &HandleAddDisableQuestCommand,                  "" },
             { "map",                  rbac::RBAC_PERM_COMMAND_DISABLE_ADD_MAP,                  true, &HandleAddDisableMapCommand,                    "" },
             { "battleground",         rbac::RBAC_PERM_COMMAND_DISABLE_ADD_BATTLEGROUND,         true, &HandleAddDisableBattlegroundCommand,           "" },
-            { "achievement_criteria", rbac::RBAC_PERM_COMMAND_DISABLE_ADD_ACHIEVEMENT_CRITERIA, true, &HandleAddDisableAchievementCriteriaCommand,    "" },
             { "outdoorpvp",           rbac::RBAC_PERM_COMMAND_DISABLE_ADD_OUTDOORPVP,           true, &HandleAddDisableOutdoorPvPCommand,             "" },
             { "vmap",                 rbac::RBAC_PERM_COMMAND_DISABLE_ADD_VMAP,                 true, &HandleAddDisableVmapCommand,                   "" },
             { "mmap",                 rbac::RBAC_PERM_COMMAND_DISABLE_ADD_MMAP,                 true, &HandleAddDisableMMapCommand,                   "" },
@@ -137,17 +135,6 @@ public:
                     return false;
                 }
                 disableTypeStr = "battleground";
-                break;
-            }
-            case DISABLE_TYPE_ACHIEVEMENT_CRITERIA:
-            {
-                if (!sAchievementMgr->GetAchievementCriteria(entry))
-                {
-                    handler->PSendSysMessage(LANG_COMMAND_NO_ACHIEVEMENT_CRITERIA_FOUND);
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
-                disableTypeStr = "achievement criteria";
                 break;
             }
             case DISABLE_TYPE_OUTDOORPVP:
@@ -241,14 +228,6 @@ public:
         return HandleAddDisables(handler, args, DISABLE_TYPE_BATTLEGROUND);
     }
 
-    static bool HandleAddDisableAchievementCriteriaCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
-
-        return HandleAddDisables(handler, args, DISABLE_TYPE_ACHIEVEMENT_CRITERIA);
-    }
-
     static bool HandleAddDisableOutdoorPvPCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
@@ -297,9 +276,6 @@ public:
                 break;
             case DISABLE_TYPE_BATTLEGROUND:
                 disableTypeStr = "battleground";
-                break;
-            case DISABLE_TYPE_ACHIEVEMENT_CRITERIA:
-                disableTypeStr = "achievement criteria";
                 break;
             case DISABLE_TYPE_OUTDOORPVP:
                 disableTypeStr = "outdoorpvp";
@@ -362,14 +338,6 @@ public:
             return false;
 
         return HandleRemoveDisables(handler, args, DISABLE_TYPE_BATTLEGROUND);
-    }
-
-    static bool HandleRemoveDisableAchievementCriteriaCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
-
-        return HandleRemoveDisables(handler, args, DISABLE_TYPE_ACHIEVEMENT_CRITERIA);
     }
 
     static bool HandleRemoveDisableOutdoorPvPCommand(ChatHandler* handler, char const* args)

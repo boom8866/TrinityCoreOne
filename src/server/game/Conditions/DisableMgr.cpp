@@ -17,7 +17,6 @@
  */
 
 #include "DisableMgr.h"
-#include "AchievementMgr.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
 #include "ObjectMgr.h"
@@ -176,15 +175,6 @@ void LoadDisables()
                 }
                 if (flags)
                     TC_LOG_ERROR("sql.sql", "Disable flags specified for outdoor PvP %u, useless data.", entry);
-                break;
-            case DISABLE_TYPE_ACHIEVEMENT_CRITERIA:
-                if (!sAchievementMgr->GetAchievementCriteria(entry))
-                {
-                    TC_LOG_ERROR("sql.sql", "Achievement Criteria entry %u from `disables` doesn't exist in dbc, skipped.", entry);
-                    continue;
-                }
-                if (flags)
-                    TC_LOG_ERROR("sql.sql", "Disable flags specified for Achievement Criteria %u, useless data.", entry);
                 break;
             case DISABLE_TYPE_VMAP:
             {

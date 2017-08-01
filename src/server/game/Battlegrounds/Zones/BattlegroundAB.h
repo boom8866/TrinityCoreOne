@@ -184,8 +184,6 @@ enum BG_AB_Objectives
 #define BG_AB_NotABBGWeekendReputationTicks 160
 #define BG_AB_ABBGWeekendReputationTicks    120
 
-#define AB_EVENT_START_BATTLE               9158 // Achievement: Let's Get This Done
-
 Position const BG_AB_NodePositions[BG_AB_DYNAMIC_NODES_COUNT] =
 {
     {1166.785f, 1200.132f, -56.70859f, 0.9075713f},         // stables
@@ -292,10 +290,6 @@ class BattlegroundAB : public Battleground
 
         /* Nodes occupying */
         void EventPlayerClickedOnFlag(Player* source, GameObject* target_obj) override;
-
-        /* achievement req. */
-        bool IsAllNodesControlledByTeam(uint32 team) const override;
-        bool CheckAchievementCriteriaMeet(uint32 /*criteriaId*/, Player const* /*player*/, Unit const* /*target*/ = nullptr, uint32 /*miscvalue1*/ = 0) override;
 
         uint32 GetPrematureWinner() override;
     private:

@@ -335,8 +335,6 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recvData)
         CharacterDatabase.CommitTransaction(trans);
 
         SendAuctionCommandResult(AH->Id, AUCTION_SELL_ITEM, ERR_AUCTION_OK);
-
-        GetPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CREATE_AUCTION, 1);
     }
     else // Required stack size of auction does not match to current item stack size, clone item and set correct stack size
     {
@@ -416,8 +414,6 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recvData)
         CharacterDatabase.CommitTransaction(trans);
 
         SendAuctionCommandResult(AH->Id, AUCTION_SELL_ITEM, ERR_AUCTION_OK);
-
-        GetPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CREATE_AUCTION, 1);
     }
 }
 
@@ -507,7 +503,6 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recvData)
 
         auction->bidder = player->GetGUID().GetCounter();
         auction->bid = price;
-        GetPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_AUCTION_BID, price);
 
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_AUCTION_BID);
         stmt->setUInt32(0, auction->bidder);
@@ -530,7 +525,6 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recvData)
         }
         auction->bidder = player->GetGUID().GetCounter();
         auction->bid = auction->buyout;
-        GetPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_AUCTION_BID, auction->buyout);
 
         //- Mails must be under transaction control too to prevent data loss
         sAuctionMgr->SendAuctionSalePendingMail(auction, trans);

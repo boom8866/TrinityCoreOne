@@ -23,7 +23,6 @@ namespace CharacterDatabaseCleaner
 {
     enum CleaningFlags
     {
-        CLEANING_FLAG_ACHIEVEMENT_PROGRESS  = 0x1,
         CLEANING_FLAG_SKILLS                = 0x2,
         CLEANING_FLAG_SPELLS                = 0x4,
         CLEANING_FLAG_TALENTS               = 0x8,
@@ -34,12 +33,10 @@ namespace CharacterDatabaseCleaner
 
     TC_GAME_API void CheckUnique(char const* column, char const* table, bool (*check)(uint32));
 
-    TC_GAME_API bool AchievementProgressCheck(uint32 criteria);
     TC_GAME_API bool SkillCheck(uint32 skill);
     TC_GAME_API bool SpellCheck(uint32 spell_id);
     TC_GAME_API bool TalentCheck(uint32 talent_id);
 
-    TC_GAME_API void CleanCharacterAchievementProgress();
     TC_GAME_API void CleanCharacterSkills();
     TC_GAME_API void CleanCharacterSpell();
     TC_GAME_API void CleanCharacterTalent();

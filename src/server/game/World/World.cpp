@@ -22,12 +22,10 @@
 
 #include "World.h"
 #include "AccountMgr.h"
-#include "AchievementMgr.h"
 #include "AddonMgr.h"
 #include "ArenaTeamMgr.h"
 #include "AuctionHouseBot.h"
 #include "AuctionHouseMgr.h"
-#include "BattlefieldMgr.h"
 #include "BattlegroundMgr.h"
 #include "CalendarMgr.h"
 #include "Channel.h"
@@ -1846,19 +1844,6 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Skill Fishing base level requirements...");
     sObjectMgr->LoadFishingBaseSkillLevel();
 
-    TC_LOG_INFO("server.loading", "Loading Achievements...");
-    sAchievementMgr->LoadAchievementReferenceList();
-    TC_LOG_INFO("server.loading", "Loading Achievement Criteria Lists...");
-    sAchievementMgr->LoadAchievementCriteriaList();
-    TC_LOG_INFO("server.loading", "Loading Achievement Criteria Data...");
-    sAchievementMgr->LoadAchievementCriteriaData();
-    TC_LOG_INFO("server.loading", "Loading Achievement Rewards...");
-    sAchievementMgr->LoadRewards();
-    TC_LOG_INFO("server.loading", "Loading Achievement Reward Locales...");
-    sAchievementMgr->LoadRewardLocales();
-    TC_LOG_INFO("server.loading", "Loading Completed Achievements...");
-    sAchievementMgr->LoadCompletedAchievements();
-
     ///- Load dynamic data tables from the database
     TC_LOG_INFO("server.loading", "Loading Item Auctions...");
     sAuctionMgr->LoadAuctionItems();
@@ -1913,9 +1898,6 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Conditions...");
     sConditionMgr->LoadConditions();
-
-    TC_LOG_INFO("server.loading", "Loading faction change achievement pairs...");
-    sObjectMgr->LoadFactionChangeAchievements();
 
     TC_LOG_INFO("server.loading", "Loading faction change spell pairs...");
     sObjectMgr->LoadFactionChangeSpells();
@@ -2060,10 +2042,6 @@ void World::SetInitialWorldSettings()
     ///- Initialize outdoor pvp
     TC_LOG_INFO("server.loading", "Starting Outdoor PvP System");
     sOutdoorPvPMgr->InitOutdoorPvP();
-
-    ///- Initialize Battlefield
-    TC_LOG_INFO("server.loading", "Starting Battlefield System");
-    sBattlefieldMgr->InitBattlefield();
 
     TC_LOG_INFO("server.loading", "Loading Transports...");
     sTransportMgr->SpawnContinentTransports();
@@ -2347,9 +2325,6 @@ void World::Update(uint32 diff)
 
     sOutdoorPvPMgr->Update(diff);
     sWorldUpdateTime.RecordUpdateTimeDuration("UpdateOutdoorPvPMgr");
-
-    sBattlefieldMgr->Update(diff);
-    sWorldUpdateTime.RecordUpdateTimeDuration("BattlefieldMgr");
 
     ///- Delete all characters which have been deleted X days before
     if (m_timers[WUPDATE_DELETECHARS].Passed())

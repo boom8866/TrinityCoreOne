@@ -226,9 +226,6 @@ void BattlegroundAB::StartingEventOpenDoors()
     }
     DoorOpen(BG_AB_OBJECT_GATE_A);
     DoorOpen(BG_AB_OBJECT_GATE_H);
-
-    // Achievement: Let's Get This Done
-    StartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, AB_EVENT_START_BATTLE);
 }
 
 void BattlegroundAB::AddPlayer(Player* player)
@@ -707,38 +704,5 @@ bool BattlegroundAB::UpdatePlayerScore(Player* player, uint32 type, uint32 value
     if (!Battleground::UpdatePlayerScore(player, type, value, doAddHonor))
         return false;
 
-    switch (type)
-    {
-        case SCORE_BASES_ASSAULTED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AB_OBJECTIVE_ASSAULT_BASE);
-            break;
-        case SCORE_BASES_DEFENDED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AB_OBJECTIVE_DEFEND_BASE);
-            break;
-        default:
-            break;
-    }
     return true;
-}
-
-bool BattlegroundAB::IsAllNodesControlledByTeam(uint32 team) const
-{
-    uint32 count = 0;
-    for (int i = 0; i < BG_AB_DYNAMIC_NODES_COUNT; ++i)
-        if ((team == ALLIANCE && m_Nodes[i] == BG_AB_NODE_STATUS_ALLY_OCCUPIED) ||
-            (team == HORDE    && m_Nodes[i] == BG_AB_NODE_STATUS_HORDE_OCCUPIED))
-            ++count;
-
-    return count == BG_AB_DYNAMIC_NODES_COUNT;
-}
-
-bool BattlegroundAB::CheckAchievementCriteriaMeet(uint32 criteriaId, Player const* player, Unit const* target, uint32 miscvalue)
-{
-    switch (criteriaId)
-    {
-        case BG_CRITERIA_CHECK_RESILIENT_VICTORY:
-            return m_TeamScores500Disadvantage[GetTeamIndexByTeamId(player->GetTeam())];
-    }
-
-    return Battleground::CheckAchievementCriteriaMeet(criteriaId, player, target, miscvalue);
 }

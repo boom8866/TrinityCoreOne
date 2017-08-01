@@ -260,11 +260,6 @@ void Arena::EndBattleground(uint32 winner)
                 // per player calculation
                 if (team == winner)
                 {
-                    // update achievement BEFORE personal rating update
-                    uint32 rating = player->GetArenaPersonalRating(winnerArenaTeam->GetSlot());
-                    player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_RATED_ARENA, rating ? rating : 1);
-                    player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA, GetMapId());
-
                     // Last standing - Rated 5v5 arena & be solely alive player
                     if (GetArenaType() == ARENA_TYPE_5v5 && aliveWinners == 1 && player->IsAlive())
                         player->CastSpell(player, SPELL_LAST_MAN_STANDING, true);
@@ -277,9 +272,6 @@ void Arena::EndBattleground(uint32 winner)
                         winnerArenaTeam->MemberLost(player, loserMatchmakerRating, winnerMatchmakerChange);
 
                     loserArenaTeam->MemberLost(player, winnerMatchmakerRating, loserMatchmakerChange);
-
-                    // Arena lost => reset the win_rated_arena having the "no_lose" condition
-                    player->ResetAchievementCriteria(ACHIEVEMENT_CRITERIA_CONDITION_NO_LOSE, 0);
                 }
             }
 

@@ -1627,9 +1627,6 @@ class BattlegroundAV : public Battleground
 
         WorldSafeLocsEntry const* GetClosestGraveyard(Player* player) override;
 
-        // Achievement: Av perfection and Everything counts
-        bool CheckAchievementCriteriaMeet(uint32 criteriaId, Player const* source, Unit const* target = nullptr, uint32 miscvalue1 = 0) override;
-
         uint32 GetPrematureWinner() override;
 
     private:

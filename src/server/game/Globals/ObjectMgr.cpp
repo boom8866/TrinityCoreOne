@@ -17,7 +17,6 @@
  */
 
 #include "ObjectMgr.h"
-#include "AchievementMgr.h"
 #include "ArenaTeamMgr.h"
 #include "Bag.h"
 #include "Chat.h"
@@ -6543,15 +6542,6 @@ void ObjectMgr::LoadAccessRequirements()
             }
         }
 
-        if (ar->achievement)
-        {
-            if (!sAchievementMgr->GetAchievement(ar->achievement))
-            {
-                TC_LOG_ERROR("sql.sql", "Required Achievement %u not exist for map %u difficulty %u, remove quest done requirement.", ar->achievement, mapid, difficulty);
-                ar->achievement = 0;
-            }
-        }
-
         _accessRequirementStore[requirement_ID] = ar;
     } while (result->NextRow());
 
@@ -9257,41 +9247,6 @@ void ObjectMgr::LoadCreatureClassLevelStats()
     }
 
     TC_LOG_INFO("server.loading", ">> Loaded %u creature base stats in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
-}
-
-void ObjectMgr::LoadFactionChangeAchievements()
-{
-    uint32 oldMSTime = getMSTime();
-
-    QueryResult result = WorldDatabase.Query("SELECT alliance_id, horde_id FROM player_factionchange_achievement");
-
-    if (!result)
-    {
-        TC_LOG_ERROR("server.loading", ">> Loaded 0 faction change achievement pairs. DB table `player_factionchange_achievement` is empty.");
-        return;
-    }
-
-    uint32 count = 0;
-
-    do
-    {
-        Field* fields = result->Fetch();
-
-        uint32 alliance = fields[0].GetUInt32();
-        uint32 horde = fields[1].GetUInt32();
-
-        if (!sAchievementMgr->GetAchievement(alliance))
-            TC_LOG_ERROR("sql.sql", "Achievement %u (alliance_id) referenced in `player_factionchange_achievement` does not exist, pair skipped!", alliance);
-        else if (!sAchievementMgr->GetAchievement(horde))
-            TC_LOG_ERROR("sql.sql", "Achievement %u (horde_id) referenced in `player_factionchange_achievement` does not exist, pair skipped!", horde);
-        else
-            FactionChangeAchievements[alliance] = horde;
-
-        ++count;
-    }
-    while (result->NextRow());
-
-    TC_LOG_INFO("server.loading", ">> Loaded %u faction change achievement pairs in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
 
 void ObjectMgr::LoadFactionChangeItems()

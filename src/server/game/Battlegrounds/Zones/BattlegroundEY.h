@@ -386,9 +386,6 @@ class BattlegroundEY : public Battleground
         void EventPlayerClickedOnFlag(Player* Source, GameObject* target_obj) override;
         void EventPlayerDroppedFlag(Player* Source) override;
 
-        /* achievement req. */
-        bool IsAllNodesControlledByTeam(uint32 team) const override;
-
         uint32 GetPrematureWinner() override;
     private:
         void PostUpdateImpl(uint32 diff) override;

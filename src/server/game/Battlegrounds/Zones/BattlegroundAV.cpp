@@ -438,9 +438,6 @@ void BattlegroundAV::StartingEventOpenDoors()
 
     DoorOpen(BG_AV_OBJECT_DOOR_H);
     DoorOpen(BG_AV_OBJECT_DOOR_A);
-
-    // Achievement: The Alterac Blitz
-    StartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, BG_AV_EVENT_START_BATTLE);
 }
 
 void BattlegroundAV::AddPlayer(Player* player)
@@ -541,23 +538,6 @@ bool BattlegroundAV::UpdatePlayerScore(Player* player, uint32 type, uint32 value
     if (!Battleground::UpdatePlayerScore(player, type, value, doAddHonor))
         return false;
 
-    switch (type)
-    {
-        case SCORE_GRAVEYARDS_ASSAULTED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AV_OBJECTIVE_ASSAULT_GRAVEYARD);
-            break;
-        case SCORE_GRAVEYARDS_DEFENDED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AV_OBJECTIVE_DEFEND_GRAVEYARD);
-            break;
-        case SCORE_TOWERS_ASSAULTED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AV_OBJECTIVE_ASSAULT_TOWER);
-            break;
-        case SCORE_TOWERS_DEFENDED:
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE, AV_OBJECTIVE_DEFEND_TOWER);
-            break;
-        default:
-            break;
-    }
     return true;
 }
 
@@ -1501,69 +1481,6 @@ void BattlegroundAV::ResetBGSubclass()
     for (uint16 i = 0; i < AV_CPLACE_MAX+AV_STATICCPLACE_MAX; i++)
         if (BgCreatures[i])
             DelCreature(i);
-}
-
-bool BattlegroundAV::CheckAchievementCriteriaMeet(uint32 criteriaId, Player const* source, Unit const* target, uint32 miscValue)
-{
-    uint32 team = source->GetTeam();
-    switch (criteriaId)
-    {
-        case BG_CRITERIA_CHECK_EVERYTHING_COUNTS:
-            for (uint8 mine = 0; mine < 2; mine++)
-                if (m_Mine_Owner[mine] != team)
-                    return false;
-
-            return true;
-        case BG_CRITERIA_CHECK_AV_PERFECTION:
-        {
-            if (team == ALLIANCE)
-            {
-                for (BG_AV_Nodes i = BG_AV_NODES_DUNBALDAR_SOUTH; i <= BG_AV_NODES_STONEHEART_BUNKER; ++i) // alliance towers controlled
-                {
-                    if (m_Nodes[i].State == POINT_CONTROLED)
-                    {
-                        if (m_Nodes[i].Owner != ALLIANCE)
-                            return false;
-                    }
-                    else
-                        return false;
-                }
-
-                for (BG_AV_Nodes i = BG_AV_NODES_ICEBLOOD_TOWER; i <= BG_AV_NODES_FROSTWOLF_WTOWER; ++i) // horde towers destroyed
-                    if (m_Nodes[i].State != POINT_DESTROYED)
-                        return false;
-
-                if (!m_CaptainAlive[0])
-                    return false;
-
-                return true;
-            }
-            else if (team == HORDE)
-            {
-                for (BG_AV_Nodes i = BG_AV_NODES_ICEBLOOD_TOWER; i <= BG_AV_NODES_FROSTWOLF_WTOWER; ++i) // horde towers controlled
-                {
-                    if (m_Nodes[i].State == POINT_CONTROLED)
-                    {
-                        if (m_Nodes[i].Owner != HORDE)
-                            return false;
-                    }
-                    else
-                        return false;
-                }
-
-                for (BG_AV_Nodes i = BG_AV_NODES_DUNBALDAR_SOUTH; i <= BG_AV_NODES_STONEHEART_BUNKER; ++i) // alliance towers destroyed
-                    if (m_Nodes[i].State != POINT_DESTROYED)
-                        return false;
-
-                if (!m_CaptainAlive[1])
-                    return false;
-
-                return true;
-            }
-        }
-    }
-
-    return Battleground::CheckAchievementCriteriaMeet(criteriaId, source, target, miscValue);
 }
 
 uint32 BattlegroundAV::GetPrematureWinner()

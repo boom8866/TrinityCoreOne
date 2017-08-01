@@ -17,7 +17,6 @@
  */
 
 #include "ConditionMgr.h"
-#include "AchievementMgr.h"
 #include "DatabaseEnv.h"
 #include "GameEventMgr.h"
 #include "GameObject.h"
@@ -84,7 +83,6 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { "Quest None",           true, false, false },
     { "Class",                true, false, false },
     { "Race",                 true, false, false },
-    { "Achievement",          true, false, false },
     { "Title",                true, false, false },
     { "SpawnMask",            true, false, false },
     { "Gender",               true, false, false },
@@ -106,7 +104,6 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { "Alive",               false, false, false },
     { "Health Value",         true, true,  false },
     { "Health Pct",           true, true, false  },
-    { "Realm Achievement",    true, false, false },
     { "In Water",            false, false, false },
     { "Terrain Swap",        false, false, false },
     { "Sit/stand state",      true,  true, false },
@@ -168,12 +165,6 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                 if (FactionEntry const* faction = sFactionStore.LookupEntry(ConditionValue1))
                     condMeets = (ConditionValue2 & (1 << player->GetReputationMgr().GetRank(faction))) != 0;
             }
-            break;
-        }
-        case CONDITION_ACHIEVEMENT:
-        {
-            if (Player* player = object->ToPlayer())
-                condMeets = player->HasAchieved(ConditionValue1);
             break;
         }
         case CONDITION_TEAM:
@@ -433,13 +424,6 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                 condMeets = creature->GetCreatureTemplate()->type == ConditionValue1;
             break;
         }
-        case CONDITION_REALM_ACHIEVEMENT:
-        {
-            AchievementEntry const* achievement = sAchievementMgr->GetAchievement(ConditionValue1);
-            if (achievement && sAchievementMgr->IsRealmCompleted(achievement))
-                condMeets = true;
-            break;
-        }
         case CONDITION_IN_WATER:
         {
             if (Unit* unit = object->ToUnit())
@@ -539,9 +523,6 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             mask |= GRID_MAP_TYPE_MASK_ALL;
             break;
         case CONDITION_REPUTATION_RANK:
-            mask |= GRID_MAP_TYPE_MASK_PLAYER;
-            break;
-        case CONDITION_ACHIEVEMENT:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         case CONDITION_TEAM:
@@ -662,9 +643,6 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             break;
         case CONDITION_CREATURE_TYPE:
             mask |= GRID_MAP_TYPE_MASK_CREATURE;
-            break;
-        case CONDITION_REALM_ACHIEVEMENT:
-            mask |= GRID_MAP_TYPE_MASK_ALL;
             break;
         case CONDITION_IN_WATER:
             mask |= GRID_MAP_TYPE_MASK_CREATURE | GRID_MAP_TYPE_MASK_PLAYER;
@@ -1884,16 +1862,6 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
             }
             break;
         }
-        case CONDITION_ACHIEVEMENT:
-        {
-            AchievementEntry const* achievement = sAchievementMgr->GetAchievement(cond->ConditionValue1);
-            if (!achievement)
-            {
-                TC_LOG_ERROR("sql.sql", "%s has non existing achivement id (%u), skipped.", cond->ToString(true).c_str(), cond->ConditionValue1);
-                return false;
-            }
-            break;
-        }
         case CONDITION_CLASS:
         {
             if (!(cond->ConditionValue1 & CLASSMASK_ALL_PLAYABLE))
@@ -2183,16 +2151,6 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
         case CONDITION_PHASEMASK:
         case CONDITION_ALIVE:
             break;
-        case CONDITION_REALM_ACHIEVEMENT:
-        {
-            AchievementEntry const* achievement = sAchievementMgr->GetAchievement(cond->ConditionValue1);
-            if (!achievement)
-            {
-                TC_LOG_ERROR("sql.sql", "%s has non existing realm first achivement id (%u), skipped.", cond->ToString(true).c_str(), cond->ConditionValue1);
-                return false;
-            }
-            break;
-        }
         case CONDITION_TERRAIN_SWAP:
             TC_LOG_ERROR("sql.sql", "%s is not valid for this branch, skipped.", cond->ToString(true).c_str());
             return false;

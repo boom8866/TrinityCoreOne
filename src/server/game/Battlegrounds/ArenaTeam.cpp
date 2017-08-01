@@ -501,10 +501,7 @@ void ArenaTeamMember::ModifyPersonalRating(Player* player, int32 mod, uint32 typ
         PersonalRating += mod;
 
     if (player)
-    {
         player->SetArenaTeamInfoField(ArenaTeam::GetSlotByType(type), ARENA_TEAM_PERSONAL_RATING, PersonalRating);
-        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_PERSONAL_RATING, PersonalRating, type);
-    }
 }
 
 void ArenaTeamMember::ModifyMatchmakerRating(int32 mod, uint32 /*slot*/)
@@ -720,14 +717,7 @@ void ArenaTeam::FinishGame(int32 mod)
     if (int32(Stats.Rating) + mod < 0)
         Stats.Rating = 0;
     else
-    {
         Stats.Rating += mod;
-
-        // Check if rating related achivements are met
-        for (MemberList::iterator itr = Members.begin(); itr != Members.end(); ++itr)
-            if (Player* member = ObjectAccessor::FindConnectedPlayer(itr->Guid))
-                member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_TEAM_RATING, Stats.Rating, Type);
-    }
 
     // Update number of games played per season or week
     Stats.WeekGames += 1;

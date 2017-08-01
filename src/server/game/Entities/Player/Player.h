@@ -33,7 +33,6 @@
 #include <queue>
 
 struct AccessRequirement;
-struct AchievementEntry;
 struct AreaTableEntry;
 struct AreaTriggerEntry;
 struct BarberShopStyleEntry;
@@ -50,7 +49,6 @@ struct ScalingStatValuesEntry;
 struct TrainerSpell;
 struct VendorItem;
 
-class AchievementMgr;
 class Bag;
 class Battleground;
 class CinematicMgr;
@@ -2094,15 +2092,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void AddRunePower(uint8 index) const;
         void InitRunes();
 
-        void SendRespondInspectAchievements(Player* player) const;
-        bool HasAchieved(uint32 achievementId) const;
-        void ResetAchievements();
-        void ResetAchievementCriteria(AchievementCriteriaCondition condition, uint32 value, bool evenIfCriteriaComplete = false);
-        void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 = 0, uint32 miscValue2 = 0, Unit* unit = nullptr);
-        void StartTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry, uint32 timeLost = 0);
-        void RemoveTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry);
-        void CompletedAchievement(AchievementEntry const* entry);
-
         bool HasTitle(uint32 bitIndex) const;
         bool HasTitle(CharTitlesEntry const* title) const;
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
@@ -2444,7 +2433,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         uint32 m_temporaryUnsummonedPetNumber;
         uint32 m_oldpetspell;
 
-        AchievementMgr* m_achievementMgr;
         ReputationMgr*  m_reputationMgr;
 
         uint32 m_ChampioningFaction;

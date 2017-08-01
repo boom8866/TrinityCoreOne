@@ -173,10 +173,7 @@ inline void KillRewarder::_RewardKillCredit(Player* player)
     // 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
     if (!_group || player->IsAlive() || !player->GetCorpse())
         if (Creature* target = _victim->ToCreature())
-        {
             player->KilledMonster(target->GetCreatureTemplate(), target->GetGUID());
-            player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE_TYPE, target->GetCreatureType(), 1, target);
-        }
 }
 
 void KillRewarder::_RewardPlayer(Player* player, bool isDungeon)
@@ -237,10 +234,7 @@ void KillRewarder::_RewardGroup()
                 {
                     // Killer may not be at reward distance, check directly
                     if (_killer == member || member->IsAtGroupRewardDistance(_victim))
-                    {
                         _RewardPlayer(member, isDungeon);
-                        member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, _victim);
-                    }
                 }
             }
         }

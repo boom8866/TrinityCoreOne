@@ -3402,43 +3402,6 @@ class spell_gen_clear_debuffs : public SpellScript
     }
 };
 
-enum PonySpells
-{
-    ACHIEV_PONY_UP              = 3736,
-    MOUNT_PONY                  = 29736
-};
-
-class spell_gen_pony_mount_check : public AuraScript
-{
-    PrepareAuraScript(spell_gen_pony_mount_check);
-
-    void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
-    {
-        Unit* caster = GetCaster();
-        if (!caster)
-            return;
-        Player* owner = caster->GetOwner()->ToPlayer();
-        if (!owner || !owner->HasAchieved(ACHIEV_PONY_UP))
-            return;
-
-        if (owner->IsMounted())
-        {
-            caster->Mount(MOUNT_PONY);
-            caster->SetSpeedRate(MOVE_RUN, owner->GetSpeedRate(MOVE_RUN));
-        }
-        else if (caster->IsMounted())
-        {
-            caster->Dismount();
-            caster->SetSpeedRate(MOVE_RUN, owner->GetSpeedRate(MOVE_RUN));
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectPeriodic += AuraEffectPeriodicFn(spell_gen_pony_mount_check::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
-    }
-};
-
 void AddSC_generic_spell_scripts()
 {
     RegisterAuraScript(spell_gen_absorb0_hitlimit1);
@@ -3538,5 +3501,4 @@ void AddSC_generic_spell_scripts()
     RegisterAuraScript(spell_gen_mixology_bonus);
     RegisterSpellScript(spell_gen_landmine_knockback_achievement);
     RegisterSpellScript(spell_gen_clear_debuffs);
-    RegisterAuraScript(spell_gen_pony_mount_check);
 }

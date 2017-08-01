@@ -61,7 +61,6 @@ class WorldSocket;
 class WorldObject;
 class WorldSession;
 
-struct AchievementCriteriaData;
 struct AreaTriggerEntry;
 struct AuctionEntry;
 struct ConditionSourceInfo;
@@ -584,18 +583,6 @@ class TC_GAME_API TransportScript : public ScriptObject, public UpdatableScript<
         virtual void OnRelocate(Transport* /*transport*/, uint32 /*waypointId*/, uint32 /*mapId*/, float /*x*/, float /*y*/, float /*z*/) { }
 };
 
-class TC_GAME_API AchievementCriteriaScript : public ScriptObject
-{
-    protected:
-
-        AchievementCriteriaScript(char const* name);
-
-    public:
-
-        // Called when an additional criteria is checked.
-        virtual bool OnCheck(Player* source, Unit* target) = 0;
-};
-
 class TC_GAME_API PlayerScript : public UnitScript
 {
     protected:
@@ -966,10 +953,6 @@ class TC_GAME_API ScriptMgr
         void OnRemovePassenger(Transport* transport, Player* player);
         void OnTransportUpdate(Transport* transport, uint32 diff);
         void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z);
-
-    public: /* AchievementCriteriaScript */
-
-        bool OnCriteriaCheck(uint32 scriptId, Player* source, Unit* target);
 
     public: /* PlayerScript */
 
