@@ -25,10 +25,6 @@
 #include "BattlegroundNA.h"
 #include "BattlegroundBE.h"
 #include "BattlegroundRL.h"
-#include "BattlegroundSA.h"
-#include "BattlegroundDS.h"
-#include "BattlegroundRV.h"
-#include "BattlegroundIC.h"
 #include "Common.h"
 #include "Containers.h"
 #include "Chat.h"
@@ -395,18 +391,6 @@ Battleground* BattlegroundMgr::CreateNewBattleground(BattlegroundTypeId original
         case BATTLEGROUND_RL:
             bg = new BattlegroundRL(*(BattlegroundRL*)bg_template);
             break;
-        case BATTLEGROUND_SA:
-            bg = new BattlegroundSA(*(BattlegroundSA*)bg_template);
-            break;
-        case BATTLEGROUND_DS:
-            bg = new BattlegroundDS(*(BattlegroundDS*)bg_template);
-            break;
-        case BATTLEGROUND_RV:
-            bg = new BattlegroundRV(*(BattlegroundRV*)bg_template);
-            break;
-        case BATTLEGROUND_IC:
-            bg = new BattlegroundIC(*(BattlegroundIC*)bg_template);
-            break;
         case BATTLEGROUND_RB:
         case BATTLEGROUND_AA:
         default:
@@ -479,18 +463,6 @@ bool BattlegroundMgr::CreateBattleground(BattlegroundTemplate const* bgTemplate)
                 break;
             case BATTLEGROUND_RL:
                 bg = new BattlegroundRL();
-                break;
-            case BATTLEGROUND_SA:
-                bg = new BattlegroundSA();
-                break;
-            case BATTLEGROUND_DS:
-                bg = new BattlegroundDS();
-                break;
-            case BATTLEGROUND_RV:
-                bg = new BattlegroundRV();
-                break;
-            case BATTLEGROUND_IC:
-                bg = new BattlegroundIC();
                 break;
             case BATTLEGROUND_AA:
                 bg = new Battleground();
