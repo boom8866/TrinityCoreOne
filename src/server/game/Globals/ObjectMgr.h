@@ -33,7 +33,7 @@
 #include "Position.h"
 #include "QuestDef.h"
 #include "SharedDefines.h"
-#include "VehicleDefines.h"
+#include "TransportDefines.h"
 #include <map>
 #include <unordered_map>
 
@@ -1042,8 +1042,6 @@ class TC_GAME_API ObjectMgr
             return nullptr;
         }
 
-        VehicleAccessoryList const* GetVehicleAccessoryList(Vehicle* veh) const;
-
         DungeonEncounterList const* GetDungeonEncounterList(uint32 mapId, Difficulty difficulty) const;
 
         void LoadQuests();
@@ -1547,9 +1545,6 @@ class TC_GAME_API ObjectMgr
         SpellClickInfoContainer _spellClickInfoStore;
 
         SpellScriptsContainer _spellScriptsStore;
-
-        VehicleAccessoryContainer _vehicleTemplateAccessoryStore;
-        VehicleAccessoryContainer _vehicleAccessoryStore;
 
         LocaleConstant DBCLocaleIndex;
 

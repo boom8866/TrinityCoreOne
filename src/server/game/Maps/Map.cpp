@@ -41,7 +41,6 @@
 #include "PoolMgr.h"
 #include "ScriptMgr.h"
 #include "Transport.h"
-#include "Vehicle.h"
 #include "VMapFactory.h"
 #include "World.h"
 
@@ -1043,8 +1042,6 @@ void Map::PlayerRelocation(Player* player, float x, float y, float z, float orie
         z += player->GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
 
     player->Relocate(x, y, z, orientation);
-    if (player->IsVehicle())
-        player->GetVehicleKit()->RelocatePassengers();
 
     if (old_cell.DiffGrid(new_cell) || old_cell.DiffCell(new_cell))
     {
@@ -1090,8 +1087,6 @@ void Map::CreatureRelocation(Creature* creature, float x, float y, float z, floa
     else
     {
         creature->Relocate(x, y, z, ang);
-        if (creature->IsVehicle())
-            creature->GetVehicleKit()->RelocatePassengers();
         creature->UpdateObjectVisibility(false);
         creature->UpdatePositionData();
         RemoveCreatureFromMoveList(creature);
@@ -1248,8 +1243,6 @@ void Map::MoveAllCreaturesInMoveList()
         {
             // update pos
             c->Relocate(c->_newPosition);
-            if (c->IsVehicle())
-                c->GetVehicleKit()->RelocatePassengers();
             //CreatureRelocationNotify(c, new_cell, new_cell.cellCoord());
             c->UpdatePositionData();
             c->UpdateObjectVisibility(false);

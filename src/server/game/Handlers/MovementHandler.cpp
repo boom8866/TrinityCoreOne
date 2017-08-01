@@ -29,7 +29,6 @@
 #include "WaypointMovementGenerator.h"
 #include "InstanceSaveMgr.h"
 #include "ObjectMgr.h"
-#include "Vehicle.h"
 #include "GameTime.h"
 
 #define MOVEMENT_PACKET_TIME_DELAY 0
@@ -373,23 +372,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvData)
     mover->SendMessageToSet(&data, _player);
 
     mover->m_movementInfo = movementInfo;
-
-    // Some vehicles allow the passenger to turn by himself
-    if (Vehicle* vehicle = mover->GetVehicle())
-    {
-        if (VehicleSeatEntry const* seat = vehicle->GetSeatForPassenger(mover))
-        {
-            if (seat->m_flags & VEHICLE_SEAT_FLAG_ALLOW_TURNING)
-            {
-                if (movementInfo.pos.GetOrientation() != mover->GetOrientation())
-                {
-                    mover->SetOrientation(movementInfo.pos.GetOrientation());
-                    mover->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TURNING);
-                }
-            }
-        }
-        return;
-    }
 
     mover->UpdatePosition(movementInfo.pos);
 

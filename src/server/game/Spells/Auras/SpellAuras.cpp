@@ -35,7 +35,6 @@
 #include "SpellScript.h"
 #include "Unit.h"
 #include "Util.h"
-#include "Vehicle.h"
 #include "World.h"
 #include "WorldPacket.h"
 
@@ -960,10 +959,6 @@ bool Aura::CanBeSaved() const
     if (HasEffectType(SPELL_AURA_OPEN_STABLE))
         return false;
 
-    // Can't save vehicle auras, it requires both caster & target to be in world
-    if (HasEffectType(SPELL_AURA_CONTROL_VEHICLE))
-        return false;
-
     // do not save bind sight auras
     if (HasEffectType(SPELL_AURA_BIND_SIGHT))
         return false;
@@ -1023,9 +1018,6 @@ bool Aura::IsSingleTargetWith(Aura const* aura) const
         default:
             break;
     }
-
-    if (HasEffectType(SPELL_AURA_CONTROL_VEHICLE) && aura->HasEffectType(SPELL_AURA_CONTROL_VEHICLE))
-        return true;
 
     return false;
 }
@@ -1809,21 +1801,6 @@ bool Aura::CanStackWith(Aura const* existingAura) const
                     break;
             }
         }
-    }
-
-    if (HasEffectType(SPELL_AURA_CONTROL_VEHICLE) && existingAura->HasEffectType(SPELL_AURA_CONTROL_VEHICLE))
-    {
-        Vehicle* veh = nullptr;
-        if (GetOwner()->ToUnit())
-            veh = GetOwner()->ToUnit()->GetVehicleKit();
-
-        if (!veh)           // We should probably just let it stack. Vehicle system will prevent undefined behaviour later
-            return true;
-
-        if (!veh->GetAvailableSeatCount())
-            return false;   // No empty seat available
-
-        return true; // Empty seat available (skip rest)
     }
 
     // spell of same spell rank chain

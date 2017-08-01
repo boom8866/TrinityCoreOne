@@ -51,12 +51,10 @@ char const* const ConditionMgr::StaticSourceTypeData[CONDITION_SOURCE_TYPE_MAX] 
     "Spell Impl. Target",
     "Gossip Menu",
     "Gossip Menu Option",
-    "Creature Vehicle",
     "Spell Expl. Target",
     "Spell Click Event",
     "Quest Accept",
     "Quest Show Mark",
-    "Vehicle Spell",
     "SmartScript",
     "Npc Vendor",
     "Spell Proc",
@@ -342,9 +340,6 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                             break;
                         case RELATION_OWNED_BY:
                             condMeets = unit->GetOwnerGUID() == toUnit->GetGUID();
-                            break;
-                        case RELATION_PASSENGER_OF:
-                            condMeets = unit->IsOnVehicle(toUnit);
                             break;
                         case RELATION_CREATED_BY:
                             condMeets = unit->GetCreatorGUID() == toUnit->GetGUID();
@@ -679,8 +674,6 @@ uint32 Condition::GetMaxAvailableConditionTargets() const
     {
         case CONDITION_SOURCE_TYPE_SPELL:
         case CONDITION_SOURCE_TYPE_SPELL_IMPLICIT_TARGET:
-        case CONDITION_SOURCE_TYPE_CREATURE_TEMPLATE_VEHICLE:
-        case CONDITION_SOURCE_TYPE_VEHICLE_SPELL:
         case CONDITION_SOURCE_TYPE_SPELL_CLICK_EVENT:
         case CONDITION_SOURCE_TYPE_GOSSIP_MENU:
         case CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION:
@@ -851,7 +844,6 @@ bool ConditionMgr::CanHaveSourceGroupSet(ConditionSourceType sourceType)
             sourceType == CONDITION_SOURCE_TYPE_SPELL_LOOT_TEMPLATE ||
             sourceType == CONDITION_SOURCE_TYPE_GOSSIP_MENU ||
             sourceType == CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION ||
-            sourceType == CONDITION_SOURCE_TYPE_VEHICLE_SPELL ||
             sourceType == CONDITION_SOURCE_TYPE_SPELL_IMPLICIT_TARGET ||
             sourceType == CONDITION_SOURCE_TYPE_SPELL_CLICK_EVENT ||
             sourceType == CONDITION_SOURCE_TYPE_SMART_EVENT ||
@@ -922,22 +914,6 @@ ConditionContainer const* ConditionMgr::GetConditionsForSpellClickEvent(uint32 c
         }
     }
     return nullptr;
-}
-
-bool ConditionMgr::IsObjectMeetingVehicleSpellConditions(uint32 creatureId, uint32 spellId, Player* player, Unit* vehicle) const
-{
-    ConditionEntriesByCreatureIdMap::const_iterator itr = VehicleSpellConditionStore.find(creatureId);
-    if (itr != VehicleSpellConditionStore.end())
-    {
-        ConditionsByEntryMap::const_iterator i = itr->second.find(spellId);
-        if (i != itr->second.end())
-        {
-            TC_LOG_DEBUG("condition", "GetConditionsForVehicleSpell: found conditions for Vehicle entry %u spell %u", creatureId, spellId);
-            ConditionSourceInfo sourceInfo(player, vehicle);
-            return IsObjectMeetToConditions(sourceInfo, i->second);
-        }
-    }
-    return true;
 }
 
 bool ConditionMgr::IsObjectMeetingSmartEventConditions(int32 entryOrGuid, uint32 eventId, uint32 sourceType, Unit* unit, WorldObject* baseObject) const
@@ -1179,13 +1155,6 @@ void ConditionMgr::LoadConditions(bool isReload)
                 case CONDITION_SOURCE_TYPE_SPELL_IMPLICIT_TARGET:
                     valid = addToSpellImplicitTargetConditions(cond);
                     break;
-                case CONDITION_SOURCE_TYPE_VEHICLE_SPELL:
-                {
-                    VehicleSpellConditionStore[cond->SourceGroup][cond->SourceEntry].push_back(cond);
-                    valid = true;
-                    ++count;
-                    continue;   // do not add to m_AllocatedMemory to avoid double deleting
-                }
                 case CONDITION_SOURCE_TYPE_SMART_EVENT:
                 {
                     //! TODO: PAIR_32 ?
@@ -1635,15 +1604,6 @@ bool ConditionMgr::isSourceTypeValid(Condition* cond) const
                 return false;
             break;
         }
-        case CONDITION_SOURCE_TYPE_CREATURE_TEMPLATE_VEHICLE:
-        {
-            if (!sObjectMgr->GetCreatureTemplate(cond->SourceEntry))
-            {
-                TC_LOG_ERROR("sql.sql", "%s SourceEntry in `condition` table, does not exist in `creature_template`, ignoring.", cond->ToString().c_str());
-                return false;
-            }
-            break;
-        }
         case CONDITION_SOURCE_TYPE_SPELL:
         case CONDITION_SOURCE_TYPE_SPELL_PROC:
         {
@@ -1659,19 +1619,6 @@ bool ConditionMgr::isSourceTypeValid(Condition* cond) const
             if (!sObjectMgr->GetQuestTemplate(cond->SourceEntry))
             {
                 TC_LOG_ERROR("sql.sql", "%s SourceEntry specifies non-existing quest, skipped.", cond->ToString().c_str());
-                return false;
-            }
-            break;
-        case CONDITION_SOURCE_TYPE_VEHICLE_SPELL:
-            if (!sObjectMgr->GetCreatureTemplate(cond->SourceGroup))
-            {
-                TC_LOG_ERROR("sql.sql", "%s SourceEntry in `condition` table, does not exist in `creature_template`, ignoring.", cond->ToString().c_str());
-                return false;
-            }
-
-            if (!sSpellMgr->GetSpellInfo(cond->SourceEntry))
-            {
-                TC_LOG_ERROR("sql.sql", "%s SourceEntry in `condition` table does not exist in `spell.dbc`, ignoring.", cond->ToString().c_str());
                 return false;
             }
             break;
@@ -2221,13 +2168,6 @@ void ConditionMgr::Clean()
 
         ConditionStore[i].clear();
     }
-
-    for (ConditionEntriesByCreatureIdMap::iterator itr = VehicleSpellConditionStore.begin(); itr != VehicleSpellConditionStore.end(); ++itr)
-        for (ConditionsByEntryMap::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
-            for (ConditionContainer::const_iterator i = it->second.begin(); i != it->second.end(); ++i)
-                delete *i;
-
-    VehicleSpellConditionStore.clear();
 
     for (SmartEventConditionContainer::iterator itr = SmartEventConditionStore.begin(); itr != SmartEventConditionStore.end(); ++itr)
         for (ConditionsByEntryMap::iterator it = itr->second.begin(); it != itr->second.end(); ++it)

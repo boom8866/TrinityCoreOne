@@ -49,7 +49,6 @@
 #include "TemporarySummon.h"
 #include "UpdateMask.h"
 #include "Util.h"
-#include "Vehicle.h"
 #include "World.h"
 
 ScriptMapMap sSpellScripts;
@@ -3124,104 +3123,6 @@ void ObjectMgr::LoadItemSetNames()
     }
 
     TC_LOG_INFO("server.loading", ">> Loaded %u item set names in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
-}
-
-void ObjectMgr::LoadVehicleTemplateAccessories()
-{
-    uint32 oldMSTime = getMSTime();
-
-    _vehicleTemplateAccessoryStore.clear();                           // needed for reload case
-
-    uint32 count = 0;
-
-    //                                                  0             1              2          3           4             5
-    QueryResult result = WorldDatabase.Query("SELECT `entry`, `accessory_entry`, `seat_id`, `minion`, `summontype`, `summontimer` FROM `vehicle_template_accessory`");
-
-    if (!result)
-    {
-        TC_LOG_ERROR("server.loading", ">> Loaded 0 vehicle template accessories. DB table `vehicle_template_accessory` is empty.");
-        return;
-    }
-
-    do
-    {
-        Field* fields = result->Fetch();
-
-        uint32 entry        = fields[0].GetUInt32();
-        uint32 accessory    = fields[1].GetUInt32();
-        int8   seatId       = fields[2].GetInt8();
-        bool   isMinion     = fields[3].GetBool();
-        uint8  summonType   = fields[4].GetUInt8();
-        uint32 summonTimer  = fields[5].GetUInt32();
-
-        if (!sObjectMgr->GetCreatureTemplate(entry))
-        {
-            TC_LOG_ERROR("sql.sql", "Table `vehicle_template_accessory`: creature template entry %u does not exist.", entry);
-            continue;
-        }
-
-        if (!sObjectMgr->GetCreatureTemplate(accessory))
-        {
-            TC_LOG_ERROR("sql.sql", "Table `vehicle_template_accessory`: Accessory %u does not exist.", accessory);
-            continue;
-        }
-
-        if (_spellClickInfoStore.find(entry) == _spellClickInfoStore.end())
-        {
-            TC_LOG_ERROR("sql.sql", "Table `vehicle_template_accessory`: creature template entry %u has no data in npc_spellclick_spells", entry);
-            continue;
-        }
-
-        _vehicleTemplateAccessoryStore[entry].push_back(VehicleAccessory(accessory, seatId, isMinion, summonType, summonTimer));
-
-        ++count;
-    }
-    while (result->NextRow());
-
-    TC_LOG_INFO("server.loading", ">> Loaded %u Vehicle Template Accessories in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
-}
-
-void ObjectMgr::LoadVehicleAccessories()
-{
-    uint32 oldMSTime = getMSTime();
-
-    _vehicleAccessoryStore.clear();                           // needed for reload case
-
-    uint32 count = 0;
-
-    //                                                  0             1             2          3           4             5
-    QueryResult result = WorldDatabase.Query("SELECT `guid`, `accessory_entry`, `seat_id`, `minion`, `summontype`, `summontimer` FROM `vehicle_accessory`");
-
-    if (!result)
-    {
-        TC_LOG_INFO("server.loading", ">> Loaded 0 Vehicle Accessories in %u ms", GetMSTimeDiffToNow(oldMSTime));
-        return;
-    }
-
-    do
-    {
-        Field* fields = result->Fetch();
-
-        uint32 uiGUID       = fields[0].GetUInt32();
-        uint32 uiAccessory  = fields[1].GetUInt32();
-        int8   uiSeat       = int8(fields[2].GetInt16());
-        bool   bMinion      = fields[3].GetBool();
-        uint8  uiSummonType = fields[4].GetUInt8();
-        uint32 uiSummonTimer= fields[5].GetUInt32();
-
-        if (!sObjectMgr->GetCreatureTemplate(uiAccessory))
-        {
-            TC_LOG_ERROR("sql.sql", "Table `vehicle_accessory`: Accessory %u does not exist.", uiAccessory);
-            continue;
-        }
-
-        _vehicleAccessoryStore[uiGUID].push_back(VehicleAccessory(uiAccessory, uiSeat, bMinion, uiSummonType, uiSummonTimer));
-
-        ++count;
-    }
-    while (result->NextRow());
-
-    TC_LOG_INFO("server.loading", ">> Loaded %u Vehicle Accessories in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
 
 void ObjectMgr::LoadPetLevelInfo()
@@ -9448,23 +9349,6 @@ CreatureTemplate const* ObjectMgr::GetCreatureTemplate(uint32 entry) const
     if (itr != _creatureTemplateStore.end())
         return &(itr->second);
 
-    return nullptr;
-}
-
-VehicleAccessoryList const* ObjectMgr::GetVehicleAccessoryList(Vehicle* veh) const
-{
-    if (Creature* cre = veh->GetBase()->ToCreature())
-    {
-        // Give preference to GUID-based accessories
-        VehicleAccessoryContainer::const_iterator itr = _vehicleAccessoryStore.find(cre->GetSpawnId());
-        if (itr != _vehicleAccessoryStore.end())
-            return &itr->second;
-    }
-
-    // Otherwise return entry-based
-    VehicleAccessoryContainer::const_iterator itr = _vehicleTemplateAccessoryStore.find(veh->GetCreatureEntry());
-    if (itr != _vehicleTemplateAccessoryStore.end())
-        return &itr->second;
     return nullptr;
 }
 

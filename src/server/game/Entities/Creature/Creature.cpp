@@ -48,7 +48,6 @@
 #include "TemporarySummon.h"
 #include "Transport.h"
 #include "Util.h"
-#include "Vehicle.h"
 #include "World.h"
 #include "WorldPacket.h"
 #include <G3D/g3dmath.h>
@@ -284,8 +283,6 @@ void Creature::AddToWorld()
         Unit::AddToWorld();
         SearchFormation();
         AIM_Initialize();
-        if (IsVehicle())
-            GetVehicleKit()->Install();
     }
 }
 
@@ -545,16 +542,6 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/,
     if (FactionTemplateEntry const* factionTemplate = sFactionTemplateStore.LookupEntry(cInfo->faction))
         SetPvP((factionTemplate->factionFlags & FACTION_TEMPLATE_FLAG_PVP) != 0);
 
-    // updates spell bars for vehicles and set player's faction - should be called here, to overwrite faction that is set from the new template
-    if (IsVehicle())
-    {
-        if (Player* owner = Creature::GetCharmerOrOwnerPlayerOrPlayerItself()) // this check comes in case we don't have a player
-        {
-            SetFaction(owner->GetFaction()); // vehicles should have same as owner faction
-            owner->VehicleSpellInitialize();
-        }
-    }
-
     // trigger creature is always not selectable and can not be attacked
     if (IsTrigger())
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -582,8 +569,6 @@ void Creature::Update(uint32 diff)
     {
         m_TriggerJustRespawned = false;
         AI()->JustRespawned();
-        if (m_vehicleKit)
-            m_vehicleKit->Reset();
     }
 
     UpdateMovementFlags();
@@ -947,9 +932,6 @@ bool Creature::AIM_Initialize(CreatureAI* ai)
 
     IsAIEnabled = true;
     i_AI->InitializeAI();
-    // Initialize vehicle
-    if (GetVehicleKit())
-        GetVehicleKit()->Reset();
     return true;
 }
 
@@ -1434,9 +1416,6 @@ bool Creature::CreateFromProto(ObjectGuid::LowType guidlow, uint32 entry, Creatu
         else
             vehId = cinfo->VehicleId;
     }
-
-    if (vehId)
-        CreateVehicleKit(vehId, entry);
 
     return true;
 }
@@ -2291,9 +2270,7 @@ bool Creature::_IsTargetAcceptable(Unit const* target) const
     ASSERT(target);
 
     // if the target cannot be attacked, the target is not acceptable
-    if (IsFriendlyTo(target)
-        || !target->isTargetableForAttack(false)
-        || (m_vehicle && (IsOnVehicle(target) || m_vehicle->GetBase()->IsOnVehicle(target))))
+    if (IsFriendlyTo(target) || !target->isTargetableForAttack(false))
         return false;
 
     if (target->HasUnitState(UNIT_STATE_DIED))
@@ -2985,10 +2962,6 @@ void Creature::FocusTarget(Spell const* focusSpell, WorldObject const* target)
         return;
 
     SpellInfo const* spellInfo = focusSpell->GetSpellInfo();
-
-    // don't use spell focus for vehicle spells
-    if (spellInfo->HasAura(SPELL_AURA_CONTROL_VEHICLE))
-        return;
 
     if ((!target || target == this) && !focusSpell->GetCastTime()) // instant cast, untargeted (or self-targeted) spell doesn't need any facing updates
         return;

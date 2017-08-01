@@ -1665,9 +1665,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     else
         TC_LOG_DEBUG("maps", "Player %s (%s) is being teleported to map (MapID: %u)", GetName().c_str(), GetGUID().ToString().c_str(), mapid);
 
-    if (m_vehicle)
-        ExitVehicle();
-
     // reset movement flags at teleport, because player will continue move with these flags after teleport
     SetUnitMovementFlags(GetUnitMovementFlags() & MOVEMENTFLAG_MASK_HAS_PLAYER_STATUS_OPCODE);
     DisableSpline();
@@ -20345,8 +20342,6 @@ void Player::StopCastingCharm()
     {
         if (charm->ToCreature()->HasUnitTypeMask(UNIT_MASK_PUPPET))
             static_cast<Puppet*>(charm)->UnSummon();
-        else if (charm->IsVehicle())
-            ExitVehicle();
     }
     if (GetCharmGUID())
         charm->RemoveCharmAuras();
@@ -20561,57 +20556,6 @@ void Player::PossessSpellInitialize()
     data << uint8(0);                                       // spells count
     data << uint8(0);                                       // cooldowns count
 
-    SendDirectMessage(&data);
-}
-
-void Player::VehicleSpellInitialize()
-{
-    Creature* vehicle = GetVehicleCreatureBase();
-    if (!vehicle)
-        return;
-
-    uint8 cooldownCount = vehicle->GetSpellHistory()->GetCooldownsSizeForPacket();
-
-    WorldPacket data(SMSG_PET_SPELLS, 8 + 2 + 4 + 4 + 4 * 10 + 1 + 1 + cooldownCount * (4 + 2 + 4 + 4));
-    data << uint64(vehicle->GetGUID());                     // Guid
-    data << uint16(0);                                      // Pet Family (0 for all vehicles)
-    data << uint32(vehicle->IsSummon() ? vehicle->ToTempSummon()->GetTimer() : 0); // Duration
-    // The following three segments are read by the client as one uint32
-    data << uint8(vehicle->GetReactState());                // React State
-    data << uint8(0);                                       // Command State
-    data << uint16(0x800);                                  // DisableActions (set for all vehicles)
-
-    for (uint32 i = 0; i < MAX_CREATURE_SPELLS; ++i)
-    {
-        uint32 spellId = vehicle->m_spells[i];
-        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!spellInfo)
-        {
-            data << uint16(0) << uint8(0) << uint8(i+8);
-            continue;
-        }
-
-        if (!sConditionMgr->IsObjectMeetingVehicleSpellConditions(vehicle->GetEntry(), spellId, this, vehicle))
-        {
-            TC_LOG_DEBUG("condition", "Player::VehicleSpellInitialize: Player '%s' (%s) doesn't meet conditions for vehicle (Entry: %u, Spell: %u)",
-                GetName().c_str(), GetGUID().ToString().c_str(), vehicle->ToCreature()->GetEntry(), spellId);
-            data << uint16(0) << uint8(0) << uint8(i+8);
-            continue;
-        }
-
-        if (spellInfo->IsPassive())
-            vehicle->CastSpell(vehicle, spellId, true);
-
-        data << uint32(MAKE_UNIT_ACTION_BUTTON(spellId, i+8));
-    }
-
-    for (uint32 i = MAX_CREATURE_SPELLS; i < MAX_SPELL_CONTROL_BAR; ++i)
-        data << uint32(0);
-
-    data << uint8(0); // Auras?
-
-    // Cooldowns
-    vehicle->GetSpellHistory()->WritePacket<Pet>(data);
     SendDirectMessage(&data);
 }
 
@@ -21013,7 +20957,6 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
     StopCastingCharm();
     StopCastingBindSight();
-    ExitVehicle();
 
     // stop trade (client cancel trade at taxi map open but cheating tools can be used for reopen it)
     TradeCancel(true);
@@ -23972,7 +23915,7 @@ void Player::SetViewpoint(WorldObject* target, bool apply)
         // farsight dynobj or puppet may be very far away
         UpdateVisibilityOf(target);
 
-        if (target->isType(TYPEMASK_UNIT) && target != GetVehicleBase())
+        if (target->isType(TYPEMASK_UNIT))
             static_cast<Unit*>(target)->AddPlayerToVision(this);
         SetSeer(target);
     }
@@ -23986,7 +23929,7 @@ void Player::SetViewpoint(WorldObject* target, bool apply)
             return;
         }
 
-        if (target->isType(TYPEMASK_UNIT) && target != GetVehicleBase())
+        if (target->isType(TYPEMASK_UNIT))
             static_cast<Unit*>(target)->RemovePlayerFromVision(this);
 
         //must immediately set seer back otherwise may crash
@@ -25563,7 +25506,6 @@ void Player::ActivateSpec(uint8 spec)
 
     ClearAllReactives();
     UnsummonAllTotems();
-    ExitVehicle();
     RemoveAllControlled();
 
     // remove single target auras at other targets

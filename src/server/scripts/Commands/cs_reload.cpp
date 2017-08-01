@@ -153,8 +153,6 @@ public:
             { "warden_action",                 rbac::RBAC_PERM_COMMAND_RELOAD_WARDEN_ACTION,                    true,  &HandleReloadWardenactionCommand,               "" },
             { "waypoint_scripts",              rbac::RBAC_PERM_COMMAND_RELOAD_WAYPOINT_SCRIPTS,                 true,  &HandleReloadWpScriptsCommand,                  "" },
             { "waypoint_data",                 rbac::RBAC_PERM_COMMAND_RELOAD_WAYPOINT_DATA,                    true,  &HandleReloadWpCommand,                         "" },
-            { "vehicle_accessory",             rbac::RBAC_PERM_COMMAND_RELOAD_VEHICLE_ACCESORY,                 true,  &HandleReloadVehicleAccessoryCommand,           "" },
-            { "vehicle_template_accessory",    rbac::RBAC_PERM_COMMAND_RELOAD_VEHICLE_TEMPLATE_ACCESSORY,       true,  &HandleReloadVehicleTemplateAccessoryCommand,   "" },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -191,9 +189,6 @@ public:
         HandleReloadGameTeleCommand(handler, "");
 
         HandleReloadCreatureSummonGroupsCommand(handler, "");
-
-        HandleReloadVehicleAccessoryCommand(handler, "");
-        HandleReloadVehicleTemplateAccessoryCommand(handler, "");
 
         HandleReloadAutobroadcastCommand(handler, "");
         HandleReloadBattlegroundTemplate(handler, "");
@@ -1091,22 +1086,6 @@ public:
         TC_LOG_INFO("misc", "Re-Loading Smart Scripts...");
         sSmartScriptMgr->LoadSmartAIFromDB();
         handler->SendGlobalGMSysMessage("Smart Scripts reloaded.");
-        return true;
-    }
-
-    static bool HandleReloadVehicleAccessoryCommand(ChatHandler* handler, char const* /*args*/)
-    {
-        TC_LOG_INFO("misc", "Reloading vehicle_accessory table...");
-        sObjectMgr->LoadVehicleAccessories();
-        handler->SendGlobalGMSysMessage("Vehicle accessories reloaded.");
-        return true;
-    }
-
-    static bool HandleReloadVehicleTemplateAccessoryCommand(ChatHandler* handler, char const* /*args*/)
-    {
-        TC_LOG_INFO("misc", "Reloading vehicle_template_accessory table...");
-        sObjectMgr->LoadVehicleTemplateAccessories();
-        handler->SendGlobalGMSysMessage("Vehicle template accessories reloaded.");
         return true;
     }
 

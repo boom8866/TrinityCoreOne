@@ -29,7 +29,6 @@
 #include "Player.h"
 #include "SpellMgr.h"
 #include "TemporarySummon.h"
-#include "Vehicle.h"
 #include "World.h"
 
 //Disable CreatureAI when charmed
@@ -197,9 +196,6 @@ void CreatureAI::EnterEvadeMode(EvadeReason why)
     }
 
     Reset();
-
-    if (me->IsVehicle()) // use the same sequence of addtoworld, aireset may remove all summons!
-        me->GetVehicleKit()->Reset(true);
 }
 
 void CreatureAI::SetGazeOn(Unit* target)

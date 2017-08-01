@@ -23,7 +23,7 @@
 #include "MoveSplineInit.h"
 #include "PathGenerator.h"
 #include "Player.h"
-#include "VehicleDefines.h"
+#include "TransportDefines.h"
 #include "World.h"
 
 template<class T, typename D>

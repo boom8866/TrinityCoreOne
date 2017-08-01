@@ -36,7 +36,6 @@
 #include "SpellAuras.h"
 #include "SpellHistory.h"
 #include "SpellMgr.h"
-#include "Vehicle.h"
 #include "World.h"
 
 /*########
@@ -2664,73 +2663,6 @@ class CastFoodSpell : public BasicEvent
         uint32 _spellId;
 };
 
-class npc_bountiful_table : public CreatureScript
-{
-public:
-    npc_bountiful_table() : CreatureScript("npc_bountiful_table") { }
-
-    struct npc_bountiful_tableAI : public PassiveAI
-    {
-        npc_bountiful_tableAI(Creature* creature) : PassiveAI(creature) { }
-
-        void PassengerBoarded(Unit* who, int8 seatId, bool /*apply*/) override
-        {
-            float x = 0.0f;
-            float y = 0.0f;
-            float z = 0.0f;
-            float o = 0.0f;
-
-            switch (seatId)
-            {
-                case SEAT_TURKEY_CHAIR:
-                    x = 3.87f;
-                    y = 2.07f;
-                    o = 3.700098f;
-                    break;
-                case SEAT_CRANBERRY_CHAIR:
-                    x = 3.87f;
-                    y = -2.07f;
-                    o = 2.460914f;
-                    break;
-                case SEAT_STUFFING_CHAIR:
-                    x = -2.52f;
-                    break;
-                case SEAT_SWEET_POTATO_CHAIR:
-                    x = -0.09f;
-                    y = -3.24f;
-                    o = 1.186824f;
-                    break;
-                case SEAT_PIE_CHAIR:
-                    x = -0.18f;
-                    y = 3.24f;
-                    o = 5.009095f;
-                    break;
-                case SEAT_FOOD_HOLDER:
-                case SEAT_PLATE_HOLDER:
-                    if (Vehicle* holders = who->GetVehicleKit())
-                        holders->InstallAllAccessories(true);
-                    return;
-                default:
-                    break;
-            }
-
-            Movement::MoveSplineInit init(who);
-            init.DisableTransportPathTransformations();
-            init.MoveTo(x, y, z, false);
-            init.SetFacing(o);
-            init.Launch();
-            who->m_Events.AddEvent(new CastFoodSpell(who, _chairSpells.at(who->GetEntry())), who->m_Events.CalculateTime(1000));
-            if (who->GetTypeId() == TYPEID_UNIT)
-                who->SetDisplayId(who->ToCreature()->GetCreatureTemplate()->Modelid1);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_bountiful_tableAI(creature);
-    }
-};
-
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -2756,5 +2688,4 @@ void AddSC_npcs_special()
     new npc_stable_master();
     new npc_train_wrecker();
     new npc_argent_squire_gruntling();
-    new npc_bountiful_table();
 }

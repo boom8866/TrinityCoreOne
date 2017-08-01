@@ -30,7 +30,6 @@
 #include "Player.h"
 #include "Totem.h"
 #include "UpdateData.h"
-#include "Vehicle.h"
 #include <G3D/Vector3.h>
 
 Transport::Transport() : GameObject(),
@@ -623,11 +622,6 @@ bool Transport::TeleportTransport(uint32 newMapid, float x, float y, float z, fl
         {
             if ((*itr)->GetTypeId() == TYPEID_PLAYER)
             {
-                // will be relocated in UpdatePosition of the vehicle
-                if (Unit* veh = (*itr)->ToUnit()->GetVehicleBase())
-                    if (veh->GetTransport() == this)
-                        continue;
-
                 float destX, destY, destZ, destO;
                 (*itr)->m_movementInfo.transport.pos.GetPosition(destX, destY, destZ, destO);
                 TransportBase::CalculatePassengerPosition(destX, destY, destZ, &destO, x, y, z, o);
@@ -733,10 +727,6 @@ void Transport::UpdatePassengerPositions(PassengerSet& passengers)
             default:
                 break;
         }
-
-        if (Unit* unit = passenger->ToUnit())
-            if (Vehicle* vehicle = unit->GetVehicleKit())
-                vehicle->RelocatePassengers();
     }
 }
 

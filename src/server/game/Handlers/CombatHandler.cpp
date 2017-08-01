@@ -23,7 +23,6 @@
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
-#include "Vehicle.h"
 #include "WorldPacket.h"
 
 void WorldSession::HandleAttackSwingOpcode(WorldPacket& recvData)
@@ -47,20 +46,6 @@ void WorldSession::HandleAttackSwingOpcode(WorldPacket& recvData)
         // stop attack state at client
         SendAttackStop(pEnemy);
         return;
-    }
-
-    //! Client explicitly checks the following before sending CMSG_ATTACKSWING packet,
-    //! so we'll place the same check here. Note that it might be possible to reuse this snippet
-    //! in other places as well.
-    if (Vehicle* vehicle = _player->GetVehicle())
-    {
-        VehicleSeatEntry const* seat = vehicle->GetSeatForPassenger(_player);
-        ASSERT(seat);
-        if (!(seat->m_flags & VEHICLE_SEAT_FLAG_CAN_ATTACK))
-        {
-            SendAttackStop(pEnemy);
-            return;
-        }
     }
 
     _player->Attack(pEnemy, true);

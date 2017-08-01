@@ -341,7 +341,7 @@ class spell_rog_killing_spree : public SpellScriptLoader
 
             void FilterTargets(std::list<WorldObject*>& targets)
             {
-                if (targets.empty() || GetCaster()->GetVehicleBase())
+                if (targets.empty())
                     FinishCast(SPELL_FAILED_OUT_OF_RANGE);
             }
 

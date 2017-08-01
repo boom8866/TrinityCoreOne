@@ -298,7 +298,7 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recvData)
     {
         // ignore for remote control state
         if (GetPlayer()->m_unitMovedByMe != GetPlayer())
-            if (!(GetPlayer()->IsOnVehicle(GetPlayer()->m_unitMovedByMe) || GetPlayer()->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
+            if ((GetPlayer()->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
                 return;
 
         obj->Use(GetPlayer());
@@ -355,17 +355,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
 
     Unit* caster = mover;
     if (caster->GetTypeId() == TYPEID_UNIT && !caster->ToCreature()->HasSpell(spellId))
-    {
-        // If the vehicle creature does not have the spell but it allows the passenger to cast own spells
-        // change caster to player and let him cast
-        if (!_player->IsOnVehicle(caster) || spellInfo->CheckVehicle(_player) != SPELL_CAST_OK)
-        {
-            recvPacket.rfinish(); // prevent spam at ignore packet
-            return;
-        }
-
         caster = _player;
-    }
 
     if (caster->GetTypeId() == TYPEID_PLAYER && !caster->ToPlayer()->HasActiveSpell(spellId))
     {

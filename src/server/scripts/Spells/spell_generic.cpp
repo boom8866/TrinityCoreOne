@@ -40,7 +40,6 @@
 #include "SpellHistory.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
-#include "Vehicle.h"
 
 class spell_gen_absorb0_hitlimit1 : public AuraScript
 {
@@ -1766,10 +1765,7 @@ class spell_gen_mounted_charge : public SpellScript
                 if (!target->IsCharmedOwnedByPlayerOrPlayer() && roll_chance_f(12.5f))
                     spellId = SPELL_CHARGE_MISS_EFFECT;
 
-                if (Unit* vehicle = GetCaster()->GetVehicleBase())
-                    vehicle->CastSpell(target, spellId, false);
-                else
-                    GetCaster()->CastSpell(target, spellId, false);
+                GetCaster()->CastSpell(target, spellId, false);
                 break;
             }
             case EFFECT_1: // On damaging spells, for removing a defend layer
@@ -2603,64 +2599,6 @@ enum MountedDuelSpells
     SPELL_MOUNTED_DUEL        = 62875
 };
 
-class spell_gen_tournament_duel : public SpellScript
-{
-    PrepareSpellScript(spell_gen_tournament_duel);
-
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo(
-        {
-            SPELL_ON_TOURNAMENT_MOUNT,
-            SPELL_MOUNTED_DUEL
-        });
-    }
-
-    void HandleScriptEffect(SpellEffIndex /*effIndex*/)
-    {
-        if (Unit* rider = GetCaster()->GetCharmer())
-        {
-            if (Player* playerTarget = GetHitPlayer())
-            {
-                if (playerTarget->HasAura(SPELL_ON_TOURNAMENT_MOUNT) && playerTarget->GetVehicleBase())
-                    rider->CastSpell(playerTarget, SPELL_MOUNTED_DUEL, true);
-            }
-            else if (Unit* unitTarget = GetHitUnit())
-            {
-                if (unitTarget->GetCharmer() && unitTarget->GetCharmer()->GetTypeId() == TYPEID_PLAYER && unitTarget->GetCharmer()->HasAura(SPELL_ON_TOURNAMENT_MOUNT))
-                    rider->CastSpell(unitTarget->GetCharmer(), SPELL_MOUNTED_DUEL, true);
-            }
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_gen_tournament_duel::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-    }
-};
-
-class spell_gen_tournament_pennant : public AuraScript
-{
-    PrepareAuraScript(spell_gen_tournament_pennant);
-
-    bool Load() override
-    {
-        return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
-    }
-
-    void HandleApplyEffect(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-    {
-        if (Unit* caster = GetCaster())
-            if (!caster->GetVehicleBase())
-                caster->RemoveAurasDueToSpell(GetId());
-    }
-
-    void Register() override
-    {
-        OnEffectApply += AuraEffectApplyFn(spell_gen_tournament_pennant::HandleApplyEffect, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
-    }
-};
-
 enum PvPTrinketTriggeredSpells
 {
     SPELL_WILL_OF_THE_FORSAKEN_COOLDOWN_TRIGGER         = 72752,
@@ -2939,48 +2877,6 @@ class spell_gen_whisper_gulch_yogg_saron_whisper : public AuraScript
     void Register() override
     {
         OnEffectPeriodic += AuraEffectPeriodicFn(spell_gen_whisper_gulch_yogg_saron_whisper::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
-    }
-};
-
-class spell_gen_eject_all_passengers : public SpellScript
-{
-    PrepareSpellScript(spell_gen_eject_all_passengers);
-
-    void RemoveVehicleAuras()
-    {
-        if (Vehicle* vehicle = GetHitUnit()->GetVehicleKit())
-            vehicle->RemoveAllPassengers();
-    }
-
-    void Register() override
-    {
-        AfterHit += SpellHitFn(spell_gen_eject_all_passengers::RemoveVehicleAuras);
-    }
-};
-
-class spell_gen_eject_passenger : public SpellScript
-{
-    PrepareSpellScript(spell_gen_eject_passenger);
-
-    bool Validate(SpellInfo const* spellInfo) override
-    {
-        if (spellInfo->Effects[EFFECT_0].CalcValue() < 1)
-            return false;
-        return true;
-    }
-
-    void EjectPassenger(SpellEffIndex /*effIndex*/)
-    {
-        if (Vehicle* vehicle = GetHitUnit()->GetVehicleKit())
-        {
-            if (Unit* passenger = vehicle->GetPassenger(GetEffectValue() - 1))
-                passenger->ExitVehicle();
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_gen_eject_passenger::EjectPassenger, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
 
@@ -3483,8 +3379,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_summon_elemental("spell_gen_summon_earth_elemental", SPELL_SUMMON_EARTH_ELEMENTAL);
     RegisterSpellScript(spell_gen_summon_tournament_mount);
     RegisterSpellScript(spell_gen_throw_shield);
-    RegisterSpellScript(spell_gen_tournament_duel);
-    RegisterAuraScript(spell_gen_tournament_pennant);
     new spell_pvp_trinket_wotf_shared_cd<SPELL_WILL_OF_THE_FORSAKEN_COOLDOWN_TRIGGER>("spell_pvp_trinket_shared_cd");
     new spell_pvp_trinket_wotf_shared_cd<SPELL_WILL_OF_THE_FORSAKEN_COOLDOWN_TRIGGER_WOTF>("spell_wotf_shared_cd");
     RegisterAuraScript(spell_gen_turkey_marker);
@@ -3494,8 +3388,6 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_gen_vendor_bark_trigger);
     RegisterSpellScript(spell_gen_wg_water);
     RegisterAuraScript(spell_gen_whisper_gulch_yogg_saron_whisper);
-    RegisterSpellScript(spell_gen_eject_all_passengers);
-    RegisterSpellScript(spell_gen_eject_passenger);
     RegisterAuraScript(spell_gen_gm_freeze);
     RegisterSpellScript(spell_gen_stand);
     RegisterAuraScript(spell_gen_mixology_bonus);

@@ -44,7 +44,6 @@
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
 #include "QueryHolder.h"
-#include "Vehicle.h"
 #include "WardenMac.h"
 #include "WardenWin.h"
 #include "World.h"
@@ -851,9 +850,6 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
         if (check) \
             mi->RemoveMovementFlag((maskToRemove));
     #endif
-
-    if (!GetPlayer()->GetVehicleBase() || !(GetPlayer()->GetVehicle()->GetVehicleInfo()->m_flags & VEHICLE_FLAG_FIXED_POSITION))
-        REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_ROOT), MOVEMENTFLAG_ROOT);
 
     /*! This must be a packet spoofing attempt. MOVEMENTFLAG_ROOT sent from the client is not valid
         in conjunction with any of the moving movement flags such as MOVEMENTFLAG_FORWARD.

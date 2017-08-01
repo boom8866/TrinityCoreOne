@@ -26,7 +26,6 @@
 #include "PetDefines.h"
 #include "Player.h"
 #include "ScriptMgr.h"
-#include "Vehicle.h"
 
 SmartAI::SmartAI(Creature* c) : CreatureAI(c)
 {
@@ -926,25 +925,7 @@ void SmartAI::CheckConditions(uint32 diff)
         return;
 
     if (mConditionsTimer <= diff)
-    {
-        if (Vehicle* vehicleKit = me->GetVehicleKit())
-        {
-            for (SeatMap::iterator itr = vehicleKit->Seats.begin(); itr != vehicleKit->Seats.end(); ++itr)
-                if (Unit* passenger = ObjectAccessor::GetUnit(*me, itr->second.Passenger.Guid))
-                {
-                    if (Player* player = passenger->ToPlayer())
-                    {
-                        if (!sConditionMgr->IsObjectMeetingNotGroupedConditions(CONDITION_SOURCE_TYPE_CREATURE_TEMPLATE_VEHICLE, me->GetEntry(), player, me))
-                        {
-                            player->ExitVehicle();
-                            return; // check other pessanger in next tick
-                        }
-                    }
-                }
-        }
-
         mConditionsTimer = 1000;
-    }
     else
         mConditionsTimer -= diff;
 }
