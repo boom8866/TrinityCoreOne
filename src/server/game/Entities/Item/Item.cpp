@@ -288,7 +288,6 @@ bool Item::Create(ObjectGuid::LowType guidlow, uint32 itemId, Player const* owne
         SetSpellCharges(i, itemProto->Spells[i].SpellCharges);
 
     SetUInt32Value(ITEM_FIELD_DURATION, itemProto->Duration);
-    SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, 0);
     return true;
 }
 
@@ -358,7 +357,6 @@ void Item::SaveToDB(SQLTransaction& trans)
 
             stmt->setInt16 (++index, GetItemRandomPropertyId());
             stmt->setUInt16(++index, GetUInt32Value(ITEM_FIELD_DURABILITY));
-            stmt->setUInt32(++index, GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME));
             stmt->setString(++index, m_text);
             stmt->setUInt32(++index, guid);
 
@@ -472,7 +470,6 @@ bool Item::LoadFromDB(ObjectGuid::LowType guid, ObjectGuid owner_guid, Field* fi
         need_save = true;
     }
 
-    SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, fields[9].GetUInt32());
     SetText(fields[10].GetString());
 
     if (need_save)                                           // normal item changed state set not work at loading
@@ -1110,46 +1107,6 @@ void Item::SetNotRefundable(Player* owner, bool changestate /*=true*/, SQLTransa
     owner->DeleteRefundReference(GetGUID());
 }
 
-void Item::UpdatePlayedTime(Player* owner)
-{
-    /*  Here we update our played time
-        We simply add a number to the current played time,
-        based on the time elapsed since the last update hereof.
-    */
-    // Get current played time
-    uint32 current_playtime = GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME);
-    // Calculate time elapsed since last played time update
-    time_t curtime = time(nullptr);
-    uint32 elapsed = uint32(curtime - m_lastPlayedTimeUpdate);
-    uint32 new_playtime = current_playtime + elapsed;
-    // Check if the refund timer has expired yet
-    if (new_playtime <= 2*HOUR)
-    {
-        // No? Proceed.
-        // Update the data field
-        SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, new_playtime);
-        // Flag as changed to get saved to DB
-        SetState(ITEM_CHANGED, owner);
-        // Speaks for itself
-        m_lastPlayedTimeUpdate = curtime;
-        return;
-    }
-    // Yes
-    SetNotRefundable(owner);
-}
-
-uint32 Item::GetPlayedTime()
-{
-    time_t curtime = time(nullptr);
-    uint32 elapsed = uint32(curtime - m_lastPlayedTimeUpdate);
-    return GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) + elapsed;
-}
-
-bool Item::IsRefundExpired()
-{
-    return (GetPlayedTime() > 2*HOUR);
-}
-
 void Item::SetSoulboundTradeable(GuidSet const& allowedLooters)
 {
     SetFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_BOP_TRADEABLE);
@@ -1171,13 +1128,6 @@ void Item::ClearSoulboundTradeable(Player* currentOwner)
 
 bool Item::CheckSoulboundTradeExpire()
 {
-    // called from owner's update - GetOwner() MUST be valid
-    if (GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) + 2*HOUR < GetOwner()->GetTotalPlayedTime())
-    {
-        ClearSoulboundTradeable(GetOwner());
-        return true; // remove from tradeable list
-    }
-
     return false;
 }
 

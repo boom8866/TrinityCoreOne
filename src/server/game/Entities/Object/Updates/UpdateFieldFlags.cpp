@@ -42,47 +42,11 @@ uint32 ItemUpdateFieldFlags[CONTAINER_END] =
     UF_FLAG_OWNER | UF_FLAG_ITEM_OWNER,                     // ITEM_FIELD_SPELL_CHARGES+4
     UF_FLAG_PUBLIC,                                         // ITEM_FIELD_FLAGS
     UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_1_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_1_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_1_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_2_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_2_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_2_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_3_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_3_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_3_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_4_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_4_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_4_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_5_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_5_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_5_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_6_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_6_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_6_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_7_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_7_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_7_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_8_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_8_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_8_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_9_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_9_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_9_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_10_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_10_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_10_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_11_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_11_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_11_3
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_12_1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_12_1+1
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_ENCHANTMENT_12_3
     UF_FLAG_PUBLIC,                                         // ITEM_FIELD_PROPERTY_SEED
     UF_FLAG_PUBLIC,                                         // ITEM_FIELD_RANDOM_PROPERTIES_ID
+    UF_FLAG_OWNER,                                          // ITEM_FIELD_ITEM_TEXT_ID
     UF_FLAG_OWNER | UF_FLAG_ITEM_OWNER,                     // ITEM_FIELD_DURABILITY
     UF_FLAG_OWNER | UF_FLAG_ITEM_OWNER,                     // ITEM_FIELD_MAXDURABILITY
-    UF_FLAG_PUBLIC,                                         // ITEM_FIELD_CREATE_PLAYED_TIME
-    UF_FLAG_NONE,                                           // ITEM_FIELD_PAD
     UF_FLAG_PUBLIC,                                         // CONTAINER_FIELD_NUM_SLOTS
     UF_FLAG_NONE,                                           // CONTAINER_ALIGN_PAD
     UF_FLAG_PUBLIC,                                         // CONTAINER_FIELD_SLOT_1

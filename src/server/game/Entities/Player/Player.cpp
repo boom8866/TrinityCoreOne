@@ -11721,7 +11721,6 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
         if (allowedLooters.size() > 1 && pItem->GetTemplate()->GetMaxStackSize() == 1 && pItem->IsSoulBound())
         {
             pItem->SetSoulboundTradeable(allowedLooters);
-            pItem->SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, GetTotalPlayedTime());
             AddTradeableItem(pItem);
 
             // save data
@@ -17878,35 +17877,21 @@ Item* Player::_LoadItem(SQLTransaction& trans, uint32 zoneId, uint32 timeDiff, F
             }
             else if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE))
             {
-                if (item->GetPlayedTime() > (2 * HOUR))
+                stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ITEM_REFUNDS);
+                stmt->setUInt32(0, item->GetGUID().GetCounter());
+                stmt->setUInt32(1, GetGUID().GetCounter());
+                if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
                 {
-                    TC_LOG_DEBUG("entities.player.loading", "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with expired refund time (%u). Deleting refund data and removing refundable flag.",
-                        GetGUID().GetCounter(), GetName().c_str(), item->GetGUID().GetCounter(), item->GetEntry(), item->GetPlayedTime());
-
-                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_REFUND_INSTANCE);
-                    stmt->setUInt32(0, item->GetGUID().GetCounter());
-                    trans->Append(stmt);
-
-                    item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE);
+                    item->SetRefundRecipient((*result)[0].GetUInt32());
+                    item->SetPaidMoney((*result)[1].GetUInt32());
+                    item->SetPaidExtendedCost((*result)[2].GetUInt16());
+                    AddRefundReference(item->GetGUID());
                 }
                 else
                 {
-                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ITEM_REFUNDS);
-                    stmt->setUInt32(0, item->GetGUID().GetCounter());
-                    stmt->setUInt32(1, GetGUID().GetCounter());
-                    if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
-                    {
-                        item->SetRefundRecipient((*result)[0].GetUInt32());
-                        item->SetPaidMoney((*result)[1].GetUInt32());
-                        item->SetPaidExtendedCost((*result)[2].GetUInt16());
-                        AddRefundReference(item->GetGUID());
-                    }
-                    else
-                    {
-                        TC_LOG_DEBUG("entities.player.loading", "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with refundable flags, but without data in item_refund_instance. Removing flag.",
-                            GetGUID().GetCounter(), GetName().c_str(), item->GetGUID().GetCounter(), item->GetEntry());
-                        item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE);
-                    }
+                    TC_LOG_DEBUG("entities.player.loading", "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with refundable flags, but without data in item_refund_instance. Removing flag.",
+                        GetGUID().GetCounter(), GetName().c_str(), item->GetGUID().GetCounter(), item->GetEntry());
+                    item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE);
                 }
             }
             else if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_BOP_TRADEABLE))
@@ -19371,31 +19356,6 @@ void Player::_SaveInventory(SQLTransaction& trans)
         if (ItemTemplate const* itemTemplate = item->GetTemplate())
             if (itemTemplate->Flags & ITEM_FLAG_HAS_LOOT)
                 sLootItemStorage->RemoveStoredLootForContainer(item->GetGUID().GetCounter());
-    }
-
-    // Updated played time for refundable items. We don't do this in Player::Update because there's simply no need for it,
-    // the client auto counts down in real time after having received the initial played time on the first
-    // SMSG_ITEM_REFUND_INFO_RESPONSE packet.
-    // Item::UpdatePlayedTime is only called when needed, which is in DB saves, and item refund info requests.
-    GuidSet::iterator i_next;
-    for (GuidSet::iterator itr = m_refundableItems.begin(); itr!= m_refundableItems.end(); itr = i_next)
-    {
-        // use copy iterator because itr may be invalid after operations in this loop
-        i_next = itr;
-        ++i_next;
-
-        Item* iPtr = GetItemByGuid(*itr);
-        if (iPtr)
-        {
-            iPtr->UpdatePlayedTime(this);
-            continue;
-        }
-        else
-        {
-            TC_LOG_ERROR("entities.player", "Player::_SaveInventory: Can't find item (%s) in refundable storage for player '%s' (%s), removing.",
-                itr->ToString().c_str(), GetName().c_str(), GetGUID().ToString().c_str());
-            m_refundableItems.erase(itr);
-        }
     }
 
     // update enchantment durations
@@ -25716,9 +25676,6 @@ void Player::DeleteRefundReference(ObjectGuid it)
 
 void Player::SendRefundInfo(Item* item)
 {
-    // This function call unsets ITEM_FLAGS_REFUNDABLE if played time is over 2 hours.
-    item->UpdatePlayedTime(this);
-
     if (!item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE))
     {
         TC_LOG_DEBUG("entities.player.items", "Item refund: item not refundable!");
@@ -25750,7 +25707,6 @@ void Player::SendRefundInfo(Item* item)
         data << uint32(iece->reqitemcount[i]);
     }
     data << uint32(0);
-    data << uint32(GetTotalPlayedTime() - item->GetPlayedTime());
     SendDirectMessage(&data);
 }
 
@@ -25782,16 +25738,6 @@ void Player::RefundItem(Item* item)
     if (!item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_REFUNDABLE))
     {
         TC_LOG_DEBUG("entities.player.items", "Item refund: item not refundable!");
-        return;
-    }
-
-    if (item->IsRefundExpired())    // item refund has expired
-    {
-        item->SetNotRefundable(this);
-        WorldPacket data(SMSG_ITEM_REFUND_RESULT, 8+4);
-        data << uint64(item->GetGUID());             // Guid
-        data << uint32(10);                          // Error!
-        SendDirectMessage(&data);
         return;
     }
 
