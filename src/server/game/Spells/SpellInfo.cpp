@@ -1683,7 +1683,7 @@ SpellCastResult SpellInfo::CheckTarget(Unit const* caster, WorldObject const* ta
                         if (!player->GetWeaponForAttack(BASE_ATTACK) || !player->IsUseEquipedWeapon(true))
                             return SPELL_FAILED_TARGET_NO_WEAPONS;
                     }
-                    else if (!unitTarget->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID))
+                    else if (!unitTarget->GetUInt32Value(UNIT_VIRTUAL_ITEM_INFO)) //[[TRINITYONE: Might be wrong]]
                         return SPELL_FAILED_TARGET_NO_WEAPONS;
                 }
             }
@@ -1796,9 +1796,6 @@ SpellCastResult SpellInfo::CheckExplicitTarget(Unit const* caster, WorldObject c
                 || (neededTargets & TARGET_FLAG_UNIT_RAID && caster->IsInRaidWith(unitTarget)))
                     if (caster->_IsValidAssistTarget(unitTarget, this))
                         return SPELL_CAST_OK;
-            if (neededTargets & TARGET_FLAG_UNIT_MINIPET)
-                if (unitTarget->GetGUID() == caster->GetCritterGUID())
-                    return SPELL_CAST_OK;
             return SPELL_FAILED_BAD_TARGETS;
         }
     }

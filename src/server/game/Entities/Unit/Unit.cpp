@@ -6262,9 +6262,6 @@ void Unit::SetMinion(Minion *minion, bool apply)
             }
         }
 
-        if (minion->m_Properties && minion->m_Properties->Type == SUMMON_TYPE_MINIPET)
-            SetCritterGUID(minion->GetGUID());
-
         // PvP, FFAPvP
         minion->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG, GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG));
 
@@ -6292,10 +6289,6 @@ void Unit::SetMinion(Minion *minion, bool apply)
         }
 
         m_Controlled.erase(minion);
-
-        if (minion->m_Properties && minion->m_Properties->Type == SUMMON_TYPE_MINIPET)
-            if (GetCritterGUID() == minion->GetGUID())
-                SetCritterGUID(ObjectGuid::Empty);
 
         if (minion->IsGuardianPet())
         {
@@ -12191,8 +12184,6 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
 float Unit::GetPositionZMinusOffset() const
 {
     float offset = 0.0f;
-    if (HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
-        offset = GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
 
     return GetPositionZ() - offset;
 }
@@ -14075,10 +14066,8 @@ bool Unit::SetHover(bool enable, bool /*packetOnly = false*/)
 {
     if (enable == HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
         return false;
-
-    float hoverHeight = GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
-
-    if (enable)
+    // [[TRINITYONE: NYI]]
+    /*if (enable)
     {
         //! No need to check height on ascent
         AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
@@ -14094,7 +14083,7 @@ bool Unit::SetHover(bool enable, bool /*packetOnly = false*/)
             UpdateAllowedPositionZ(GetPositionX(), GetPositionY(), newZ);
             UpdateHeight(newZ);
         }
-    }
+    }*/
     return true;
 }
 

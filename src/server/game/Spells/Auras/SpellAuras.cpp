@@ -1542,23 +1542,6 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 if (GetId() == 25771 && target->HasAura(61988) && !target->HasAura(61987))
                     target->RemoveAura(61988);
                 break;
-            case SPELLFAMILY_DEATHKNIGHT:
-                // Blood of the North
-                // Reaping
-                // Death Rune Mastery
-                if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622)
-                {
-                    if (!GetEffect(0) || GetEffect(0)->GetAuraType() != SPELL_AURA_PERIODIC_DUMMY)
-                        break;
-                    if (target->GetTypeId() != TYPEID_PLAYER)
-                        break;
-                    if (target->ToPlayer()->getClass() != CLASS_DEATH_KNIGHT)
-                        break;
-
-                     // aura removed - remove death runes
-                    target->ToPlayer()->RemoveRunesByAuraEffect(GetEffect(0));
-                }
-                break;
             case SPELLFAMILY_HUNTER:
                 // Glyph of Freezing Trap
                 if (GetSpellInfo()->SpellFamilyFlags[0] & 0x00000008)

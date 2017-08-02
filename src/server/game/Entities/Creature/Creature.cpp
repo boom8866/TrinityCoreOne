@@ -472,8 +472,6 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
     // Will set UNIT_FIELD_BOUNDINGRADIUS and UNIT_FIELD_COMBATREACH
     SetObjectScale(cinfo->scale);
 
-    SetFloatValue(UNIT_FIELD_HOVERHEIGHT, cinfo->HoverHeight);
-
     // checked at loading
     m_defaultMovementType = MovementGeneratorType(data ? data->movementType : cinfo->MovementType);
     if (!m_respawnradius && m_defaultMovementType == RANDOM_MOTION_TYPE)
@@ -1009,13 +1007,6 @@ bool Creature::Create(ObjectGuid::LowType guidlow, Map* map, uint32 phaseMask, u
             break;
     }
 
-    //! Need to be called after LoadCreaturesAddon - MOVEMENTFLAG_HOVER is set there
-    if (HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
-    {
-        //! Relocate again with updated Z coord
-        m_positionZ += GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
-    }
-
     LastUsedScriptID = GetScriptId();
 
     if (IsSpiritHealer() || IsSpiritGuide() || (GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_GHOST_VISIBILITY))
@@ -1522,7 +1513,7 @@ void Creature::LoadEquipment(int8 id, bool force /*= true*/)
         if (force)
         {
             for (uint8 i = 0; i < MAX_EQUIPMENT_ITEMS; ++i)
-                SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i, 0);
+                SetVirtualItem(VirtualItemSlot(i), 0);
             m_equipmentId = 0;
         }
 
@@ -1535,7 +1526,7 @@ void Creature::LoadEquipment(int8 id, bool force /*= true*/)
 
     m_equipmentId = id;
     for (uint8 i = 0; i < MAX_EQUIPMENT_ITEMS; ++i)
-        SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i, einfo->ItemEntry[i]);
+        SetVirtualItem(VirtualItemSlot(i), einfo->ItemEntry[i]);
 }
 
 void Creature::SetSpawnHealth()
@@ -2721,6 +2712,32 @@ float Creature::GetPetChaseDistance() const
     }
 
     return range;
+}
+
+void Creature::SetVirtualItem(VirtualItemSlot slot, uint32 item_id)
+{
+    if (item_id == 0)
+    {
+        SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY + slot, 0);
+        SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, 0);
+        SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 1, 0);
+        return;
+    }
+
+    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item_id);
+    if (!proto)
+    {
+        TC_LOG_ERROR("sql.sql", "Not listed in 'item_template' item (ID:%u)", item_id);
+        return;
+    }
+
+    SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY + slot, proto->DisplayInfoID);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_CLASS, proto->Class);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_SUBCLASS, proto->SubClass);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_UNK0, proto->SoundOverrideSubclass);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_MATERIAL, proto->Material);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 1, VIRTUAL_ITEM_INFO_1_OFFSET_INVENTORYTYPE, proto->InventoryType);
+    SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 1, VIRTUAL_ITEM_INFO_1_OFFSET_SHEATH, proto->Sheath);
 }
 
 bool Creature::SetWalk(bool enable)

@@ -305,14 +305,13 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNoImmediateEffect,                         //246 SPELL_AURA_MOD_AURA_DURATION_BY_DISPEL_NOT_STACK implemented in Spell::EffectApplyAura
     &AuraEffect::HandleAuraCloneCaster,                           //247 SPELL_AURA_CLONE_CASTER
     &AuraEffect::HandleNoImmediateEffect,                         //248 SPELL_AURA_MOD_COMBAT_RESULT_CHANCE         implemented in Unit::RollMeleeOutcomeAgainst
-    &AuraEffect::HandleAuraConvertRune,                           //249 SPELL_AURA_CONVERT_RUNE
     &AuraEffect::HandleAuraModIncreaseHealth,                     //250 SPELL_AURA_MOD_INCREASE_HEALTH_2
     &AuraEffect::HandleNoImmediateEffect,                         //251 SPELL_AURA_MOD_ENEMY_DODGE                  implemented in Unit::GetUnitDodgeChance
     &AuraEffect::HandleModCombatSpeedPct,                         //252 SPELL_AURA_252 Is there any difference between this and SPELL_AURA_MELEE_SLOW ? maybe not stacking mod?
     &AuraEffect::HandleNoImmediateEffect,                         //253 SPELL_AURA_MOD_BLOCK_CRIT_CHANCE  implemented in Unit::isBlockCritical
     &AuraEffect::HandleAuraModDisarm,                             //254 SPELL_AURA_MOD_DISARM_OFFHAND
     &AuraEffect::HandleNoImmediateEffect,                         //255 SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT    implemented in Unit::SpellDamageBonus
-    &AuraEffect::HandleNoReagentUseAura,                          //256 SPELL_AURA_NO_REAGENT_USE Use SpellClassMask for spell select
+    &AuraEffect::HandleUnused,                                    //256 unused
     &AuraEffect::HandleNULL,                                      //257 SPELL_AURA_MOD_TARGET_RESIST_BY_SPELL_CLASS Use SpellClassMask for spell select
     &AuraEffect::HandleNULL,                                      //258 SPELL_AURA_MOD_SPELL_VISUAL
     &AuraEffect::HandleNoImmediateEffect,                         //259 SPELL_AURA_MOD_HOT_PCT implemented in Unit::SpellHealingBonus
@@ -359,7 +358,6 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNoImmediateEffect,                         //301 SPELL_AURA_SCHOOL_HEAL_ABSORB implemented in Unit::CalcHealAbsorb
     &AuraEffect::HandleUnused,                                    //302 0 spells in 3.3.5
     &AuraEffect::HandleNoImmediateEffect,                         //303 SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE implemented in Unit::SpellDamageBonus, Unit::MeleeDamageBonus
-    &AuraEffect::HandleAuraModFakeInebriation,                    //304 SPELL_AURA_MOD_DRUNK
     &AuraEffect::HandleAuraModIncreaseSpeed,                      //305 SPELL_AURA_MOD_MINIMUM_SPEED
     &AuraEffect::HandleUnused,                                    //306 0 spells in 3.3.5
     &AuraEffect::HandleUnused,                                    //307 0 spells in 3.3.5
@@ -1203,23 +1201,6 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
 
                 if (spellInfo->Stances & (UI64LIT(1) << (GetMiscValue() - 1)))
                     target->CastSpell(target, itr->first, true, nullptr, this);
-            }
-
-            // Also do it for Glyphs
-            for (uint32 i = 0; i < MAX_GLYPH_SLOT_INDEX; ++i)
-            {
-                if (uint32 glyphId = target->ToPlayer()->GetGlyph(i))
-                {
-                    if (GlyphPropertiesEntry const* glyph = sGlyphPropertiesStore.LookupEntry(glyphId))
-                    {
-                        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(glyph->SpellId);
-                        if (!spellInfo || !(spellInfo->HasAttribute(SPELL_ATTR0_PASSIVE) || spellInfo->HasAttribute(SPELL_ATTR0_HIDDEN_CLIENTSIDE)))
-                            continue;
-
-                        if (spellInfo->Stances & (UI64LIT(1) << (GetMiscValue() - 1)))
-                            target->CastSpell(target, glyph->SpellId, true, nullptr, this);
-                    }
-                }
             }
 
             // Leader of the Pack
@@ -3580,8 +3561,6 @@ void AuraEffect::HandleModPowerRegen(AuraApplication const* aurApp, uint8 mode, 
     // Update manaregen value
     if (GetMiscValue() == POWER_MANA)
         target->ToPlayer()->UpdateManaRegen();
-    else if (GetMiscValue() == POWER_RUNE)
-        target->ToPlayer()->UpdateRuneRegen(RuneType(GetMiscValueB()));
     // other powers are not immediate effects - implemented in Player::Regenerate, Creature::Regenerate
 }
 
@@ -4278,26 +4257,6 @@ void AuraEffect::HandleArenaPreparation(AuraApplication const* aurApp, uint8 mod
     }
 }
 
-void AuraEffect::HandleNoReagentUseAura(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
-{
-    if (!(mode & AURA_EFFECT_HANDLE_REAL))
-        return;
-
-    Unit* target = aurApp->GetTarget();
-
-    if (target->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    flag96 mask;
-    Unit::AuraEffectList const& noReagent = target->GetAuraEffectsByType(SPELL_AURA_NO_REAGENT_USE);
-        for (Unit::AuraEffectList::const_iterator i = noReagent.begin(); i != noReagent.end(); ++i)
-            mask |= (*i)->m_spellInfo->Effects[(*i)->m_effIndex].SpellClassMask;
-
-    target->SetUInt32Value(PLAYER_NO_REAGENT_COST_1  , mask[0]);
-    target->SetUInt32Value(PLAYER_NO_REAGENT_COST_1+1, mask[1]);
-    target->SetUInt32Value(PLAYER_NO_REAGENT_COST_1+2, mask[2]);
-}
-
 void AuraEffect::HandleAuraRetainComboPoints(AuraApplication const* aurApp, uint8 mode, bool apply) const
 {
     if (!(mode & AURA_EFFECT_HANDLE_REAL))
@@ -4846,39 +4805,6 @@ void AuraEffect::HandleComprehendLanguage(AuraApplication const* aurApp, uint8 m
     }
 }
 
-void AuraEffect::HandleAuraConvertRune(AuraApplication const* aurApp, uint8 mode, bool apply) const
-{
-    if (!(mode & AURA_EFFECT_HANDLE_REAL))
-        return;
-
-    Unit* target = aurApp->GetTarget();
-
-    Player* player = target->ToPlayer();
-    if (!player)
-        return;
-
-    if (player->getClass() != CLASS_DEATH_KNIGHT)
-        return;
-
-    uint32 runes = m_amount;
-    // convert number of runes specified in aura amount of rune type in miscvalue to runetype in miscvalueb
-    if (apply)
-    {
-        for (uint32 i = 0; i < MAX_RUNES && runes; ++i)
-        {
-            if (GetMiscValue() != player->GetCurrentRune(i))
-                continue;
-            if (!player->GetRuneCooldown(i))
-            {
-                player->AddRuneByAuraEffect(i, RuneType(GetMiscValueB()), this);
-                --runes;
-            }
-        }
-    }
-    else
-        player->RemoveRunesByAuraEffect(this);
-}
-
 void AuraEffect::HandleAuraLinked(AuraApplication const* aurApp, uint8 mode, bool apply) const
 {
     Unit* target = aurApp->GetTarget();
@@ -4931,47 +4857,6 @@ void AuraEffect::HandleAuraOpenStable(AuraApplication const* aurApp, uint8 mode,
         target->ToPlayer()->GetSession()->SendStablePet(target->GetGUID());
 
      // client auto close stable dialog at !apply aura
-}
-
-void AuraEffect::HandleAuraModFakeInebriation(AuraApplication const* aurApp, uint8 mode, bool apply) const
-{
-    if (!(mode & AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK))
-        return;
-
-    Unit* target = aurApp->GetTarget();
-
-    if (apply)
-    {
-        target->m_invisibilityDetect.AddFlag(INVISIBILITY_DRUNK);
-        target->m_invisibilityDetect.AddValue(INVISIBILITY_DRUNK, GetAmount());
-
-        if (target->GetTypeId() == TYPEID_PLAYER)
-        {
-            int32 oldval = target->ToPlayer()->GetInt32Value(PLAYER_FAKE_INEBRIATION);
-            target->ToPlayer()->SetInt32Value(PLAYER_FAKE_INEBRIATION, oldval + GetAmount());
-        }
-    }
-    else
-    {
-        bool removeDetect = !target->HasAuraType(SPELL_AURA_MOD_FAKE_INEBRIATE);
-
-        target->m_invisibilityDetect.AddValue(INVISIBILITY_DRUNK, -GetAmount());
-
-        if (target->GetTypeId() == TYPEID_PLAYER)
-        {
-            int32 oldval = target->ToPlayer()->GetInt32Value(PLAYER_FAKE_INEBRIATION);
-            target->ToPlayer()->SetInt32Value(PLAYER_FAKE_INEBRIATION, oldval - GetAmount());
-
-            if (removeDetect)
-                removeDetect = !target->ToPlayer()->GetDrunkValue();
-        }
-
-        if (removeDetect)
-            target->m_invisibilityDetect.DelFlag(INVISIBILITY_DRUNK);
-    }
-
-    // call functions which may have additional effects after chainging state of unit
-    target->UpdateObjectVisibility();
 }
 
 void AuraEffect::HandleAuraOverrideSpells(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -5129,28 +5014,6 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                 if (!(target->GetUInt32Value(UNIT_FIELD_FLAGS)&(UNIT_FLAG_STUNNED|UNIT_FLAG_FLEEING|UNIT_FLAG_SILENCED)))
                     target->RemoveAurasDueToSpell(52179);
                 break;
-            }
-            break;
-        case SPELLFAMILY_DEATHKNIGHT:
-            switch (GetId())
-            {
-                case 49016: // Hysteria
-                    uint32 damage = uint32(target->CountPctFromMaxHealth(1));
-                    target->DealDamage(target, damage, nullptr, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-                    break;
-            }
-            // Blood of the North
-            // Reaping
-            // Death Rune Mastery
-            if (GetSpellInfo()->SpellIconID == 3041 || GetSpellInfo()->SpellIconID == 22 || GetSpellInfo()->SpellIconID == 2622)
-            {
-                if (target->GetTypeId() != TYPEID_PLAYER)
-                    return;
-                if (target->ToPlayer()->getClass() != CLASS_DEATH_KNIGHT)
-                    return;
-
-                 // timer expired - remove death runes
-                target->ToPlayer()->RemoveRunesByAuraEffect(this);
             }
             break;
         default:

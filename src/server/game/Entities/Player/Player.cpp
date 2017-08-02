@@ -235,13 +235,6 @@ Player::Player(WorldSession* session): Unit(true)
     m_DailyQuestChanged = false;
     m_lastDailyQuestTime = 0;
 
-    // Init rune flags
-    for (uint8 i = 0; i < MAX_RUNES; ++i)
-    {
-        SetRuneTimer(i, 0xFFFFFFFF);
-        SetLastRuneGraceTimer(i, 0);
-    }
-
     for (uint8 i=0; i < MAX_TIMERS; i++)
         m_MirrorTimer[i] = DISABLED_MIRROR_TIMER;
 
@@ -361,8 +354,6 @@ Player::Player(WorldSession* session): Unit(true)
 
     m_isActive = true;
 
-    m_runes = nullptr;
-
     m_lastFallTime = 0;
     m_lastFallZ = 0;
 
@@ -434,7 +425,6 @@ Player::~Player()
         delete ItemSetEff[x];
 
     delete m_declinedname;
-    delete m_runes;
     delete m_reputationMgr;
     delete _cinematicMgr;
 
@@ -519,7 +509,6 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
     }
     SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_REGENERATE_POWER);
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);               // fix cast time showed in spell tooltip on client
-    SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 1.0f);            // default for players in 3.0.3
 
     SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, uint32(-1));  // -1 is default value
 
@@ -559,8 +548,6 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
 
     SetUInt32Value(UNIT_FIELD_LEVEL, start_level);
 
-    InitRunes();
-
     SetUInt32Value(PLAYER_FIELD_COINAGE, sWorld->getIntConfig(CONFIG_START_PLAYER_MONEY));
     SetHonorPoints(sWorld->getIntConfig(CONFIG_START_HONOR_POINTS));
     SetArenaPoints(sWorld->getIntConfig(CONFIG_START_ARENA_POINTS));
@@ -573,7 +560,6 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
     // base stats and related field values
     InitStatsForLevel();
     InitTaxiNodesForLevel();
-    InitGlyphsForLevel();
     InitTalentForLevel();
     InitPrimaryProfessions();                               // to max set before any spell added
 
@@ -584,14 +570,6 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
     {
         UpdateMaxPower(POWER_MANA);                         // Update max Mana (for add bonus from intellect)
         SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
-    }
-
-    if (getPowerType() == POWER_RUNIC_POWER)
-    {
-        SetPower(POWER_RUNE, 8);
-        SetMaxPower(POWER_RUNE, 8);
-        SetPower(POWER_RUNIC_POWER, 0);
-        SetMaxPower(POWER_RUNIC_POWER, 1000);
     }
 
     // original spells
@@ -1327,26 +1305,6 @@ void Player::Update(uint32 p_time)
         }
     }
 
-    if (getClass() == CLASS_DEATH_KNIGHT)
-    {
-        // Update rune timers
-        for (uint8 i = 0; i < MAX_RUNES; ++i)
-        {
-            uint32 timer = GetRuneTimer(i);
-
-            // Don't update timer if rune is disabled
-            if (GetRuneCooldown(i))
-                continue;
-
-            // Timer has began
-            if (timer < 0xFFFFFFFF)
-            {
-                timer += p_time;
-                SetRuneTimer(i, std::min(uint32(2500), timer));
-            }
-        }
-    }
-
     // group update
     SendUpdateToOutOfRangeGroupMembers();
 
@@ -1985,12 +1943,6 @@ void Player::RegenerateAll()
 
     Regenerate(POWER_MANA);
 
-    // Runes act as cooldowns, and they don't need to send any data
-    if (getClass() == CLASS_DEATH_KNIGHT)
-        for (uint8 i = 0; i < MAX_RUNES; ++i)
-            if (uint32 cd = GetRuneCooldown(i))
-                SetRuneCooldown(i, (cd > m_regenTimer) ? cd - m_regenTimer : 0);
-
     if (m_regenTimerCount >= 2000)
     {
         // Not in combat or they have regeneration
@@ -2036,9 +1988,9 @@ void Player::Regenerate(Powers power)
                 ManaIncreaseRate = sWorld->getRate(RATE_POWER_MANA) * (2.066f - (getLevel() * 0.066f));
 
             if (recentCast) // Trinity Updates Mana in intervals of 2s, which is correct
-                addvalue += GetFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER) *  ManaIncreaseRate * 0.001f * m_regenTimer;
+                addvalue += GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN_INTERRUPT) *  ManaIncreaseRate * 0.001f * m_regenTimer;
             else
-                addvalue += GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) * ManaIncreaseRate * 0.001f * m_regenTimer;
+                addvalue += GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * ManaIncreaseRate * 0.001f * m_regenTimer;
         }   break;
         case POWER_RAGE:                                    // Regenerate rage
         {
@@ -2059,7 +2011,6 @@ void Player::Regenerate(Powers power)
                 addvalue += -30 * RunicPowerDecreaseRate;         // 3 RunicPower by tick
             }
         }   break;
-        case POWER_RUNE:
         case POWER_FOCUS:
         case POWER_HAPPINESS:
             break;
@@ -2604,7 +2555,6 @@ void Player::GiveLevel(uint8 level)
 
     InitTalentForLevel();
     InitTaxiNodesForLevel();
-    InitGlyphsForLevel();
 
     UpdateAllStats();
 
@@ -2794,9 +2744,6 @@ void Player::InitStatsForLevel(bool reapplyMods)
         SetUInt32Value(UNIT_FIELD_POWER_COST_MODIFIER + i, 0);
         SetFloatValue(UNIT_FIELD_POWER_COST_MULTIPLIER + i, 0.0f);
     }
-    // Reset no reagent cost field
-    for (uint8 i = 0; i < 3; ++i)
-        SetUInt32Value(PLAYER_NO_REAGENT_COST_1 + i, 0);
     // Init data for form but skip reapply item mods for form
     InitDataForForm(reapplyMods);
 
@@ -6793,8 +6740,6 @@ void Player::SetHonorPoints(uint32 value)
     if (value > sWorld->getIntConfig(CONFIG_MAX_HONOR_POINTS))
         value = sWorld->getIntConfig(CONFIG_MAX_HONOR_POINTS);
     SetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY, value);
-    if (value)
-        AddKnownCurrency(ITEM_HONOR_POINTS_ID);
 }
 
 void Player::SetArenaPoints(uint32 value)
@@ -6802,8 +6747,6 @@ void Player::SetArenaPoints(uint32 value)
     if (value > sWorld->getIntConfig(CONFIG_MAX_ARENA_POINTS))
         value = sWorld->getIntConfig(CONFIG_MAX_ARENA_POINTS);
     SetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY, value);
-    if (value)
-        AddKnownCurrency(ITEM_ARENA_POINTS_ID);
 }
 
 void Player::ModifyHonorPoints(int32 value, SQLTransaction trans)
@@ -11802,10 +11745,6 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
 
             pItem->SetSlot(slot);
             pItem->SetContainer(nullptr);
-
-            // need update known currency
-            if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
-                AddKnownCurrency(pItem->GetEntry());
         }
         else
             pBag->StoreItem(slot, pItem, update);
@@ -12010,14 +11949,30 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
 {
     if (pItem)
     {
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
-        SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0, pItem->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));
-        SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 1, pItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT));
+        SetGuidValue(PLAYER_VISIBLE_ITEM_1_CREATOR + (slot * MAX_VISIBLE_ITEM_OFFSET), pItem->GetGuidValue(ITEM_FIELD_CREATOR));
+
+        int VisibleBase = PLAYER_VISIBLE_ITEM_1_0 + (slot * MAX_VISIBLE_ITEM_OFFSET);
+        SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
+
+        for (int i = 0; i < MAX_INSPECTED_ENCHANTMENT_SLOT; ++i)
+            SetUInt32Value(VisibleBase + 1 + i, pItem->GetEnchantmentId(EnchantmentSlot(i)));
+
+        // Use SetInt16Value to prevent set high part to FFFF for negative value
+        SetInt16Value(PLAYER_VISIBLE_ITEM_1_PROPERTIES + (slot * MAX_VISIBLE_ITEM_OFFSET), 0, pItem->GetItemRandomPropertyId());
+        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_PROPERTIES + 1 + (slot * MAX_VISIBLE_ITEM_OFFSET), pItem->GetItemSuffixFactor());
     }
     else
     {
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), 0);
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0);
+        SetGuidValue(PLAYER_VISIBLE_ITEM_1_CREATOR + (slot * MAX_VISIBLE_ITEM_OFFSET), ObjectGuid());
+
+        int VisibleBase = PLAYER_VISIBLE_ITEM_1_0 + (slot * MAX_VISIBLE_ITEM_OFFSET);
+        SetUInt32Value(VisibleBase + 0, 0);
+
+        for (int i = 0; i < MAX_INSPECTED_ENCHANTMENT_SLOT; ++i)
+            SetUInt32Value(VisibleBase + 1 + i, 0);
+
+        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_PROPERTIES + 0 + (slot * MAX_VISIBLE_ITEM_OFFSET), 0);
+        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_PROPERTIES + 1 + (slot * MAX_VISIBLE_ITEM_OFFSET), 0);
     }
 }
 
@@ -13791,11 +13746,11 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
     }
 
     // visualize enchantment at player and equipped items
-    if (slot == PERM_ENCHANTMENT_SLOT)
-        SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (item->GetSlot() * 2), 0, apply ? item->GetEnchantmentId(slot) : 0);
-
-    if (slot == TEMP_ENCHANTMENT_SLOT)
-        SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (item->GetSlot() * 2), 1, apply ? item->GetEnchantmentId(slot) : 0);
+    if (slot < MAX_INSPECTED_ENCHANTMENT_SLOT)
+    {
+        int VisibleBase = PLAYER_VISIBLE_ITEM_1_0 + (item->GetSlot() * MAX_VISIBLE_ITEM_OFFSET);
+        SetUInt32Value(VisibleBase + 1 + slot, apply ? item->GetEnchantmentId(slot) : 0);
+    }
 
     if (apply_dur)
     {
@@ -16864,7 +16819,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
     _LoadIntoDataField(fields[69].GetString(), PLAYER__FIELD_KNOWN_TITLES, KNOWN_TITLES_SIZE * 2);
 
     SetObjectScale(1.0f);
-    SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 1.0f);
 
     uint32 money = fields[8].GetUInt32();
     if (money > MAX_MONEY_AMOUNT)
@@ -16897,8 +16851,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
 
     SetUInt32Value(PLAYER_FLAGS, fields[16].GetUInt32());
     SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, fields[53].GetUInt32());
-
-    SetUInt64Value(PLAYER_FIELD_KNOWN_CURRENCIES, fields[52].GetUInt64());
 
     SetUInt32Value(PLAYER_AMMO_ID, fields[68].GetUInt32());
 
@@ -17332,9 +17284,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
 
     // reset stats before loading any modifiers
     InitStatsForLevel();
-    InitGlyphsForLevel();
     InitTaxiNodesForLevel();
-    InitRunes();
 
     // rest bonus can only be calculated after InitStatsForLevel()
     m_rest_bonus = fields[26].GetFloat();
@@ -17375,9 +17325,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
     _LoadTalents(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_TALENTS));
     _LoadSpells(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SPELLS));
 
-    _LoadGlyphs(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GLYPHS));
     _LoadAuras(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AURAS), time_diff);
-    _LoadGlyphAuras();
     // add ghost flag (must be after aura load: PLAYER_FLAGS_GHOST set in aura)
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
         m_deathState = DEAD;
@@ -17664,36 +17612,6 @@ void Player::_LoadAuras(PreparedQueryResult result, uint32 timediff)
             }
         }
         while (result->NextRow());
-    }
-}
-
-void Player::_LoadGlyphAuras()
-{
-    for (uint8 i = 0; i < MAX_GLYPH_SLOT_INDEX; ++i)
-    {
-        if (uint32 glyph = GetGlyph(i))
-        {
-            if (GlyphPropertiesEntry const* gp = sGlyphPropertiesStore.LookupEntry(glyph))
-            {
-                if (GlyphSlotEntry const* gs = sGlyphSlotStore.LookupEntry(GetGlyphSlot(i)))
-                {
-                    if (gp->TypeFlags == gs->TypeFlags)
-                    {
-                        CastSpell(this, gp->SpellId, true);
-                        continue;
-                    }
-                    else
-                        TC_LOG_ERROR("entities.player", "Player::_LoadGlyphAuras: Player '%s' (%s) has glyph with typeflags %u in slot with typeflags %u, removing.", GetName().c_str(), GetGUID().ToString().c_str(), gp->TypeFlags, gs->TypeFlags);
-                }
-                else
-                    TC_LOG_ERROR("entities.player", "Player::_LoadGlyphAuras: Player '%s' (%s) has not existing glyph slot entry %u on index %u", GetName().c_str(), GetGUID().ToString().c_str(), GetGlyphSlot(i), i);
-            }
-            else
-                TC_LOG_ERROR("entities.player", "Player::_LoadGlyphAuras: Player '%s' (%s) has not existing glyph entry %u on index %u", GetName().c_str(), GetGUID().ToString().c_str(), glyph, i);
-
-            // On any error remove glyph
-            SetGlyph(i, 0);
-        }
     }
 }
 
@@ -18987,7 +18905,6 @@ void Player::SaveToDB(bool create /*=false*/)
         stmt->setUInt16(index++, GetUInt16Value(PLAYER_FIELD_KILLS, 0));
         stmt->setUInt16(index++, GetUInt16Value(PLAYER_FIELD_KILLS, 1));
         stmt->setUInt32(index++, GetUInt32Value(PLAYER_CHOSEN_TITLE));
-        stmt->setUInt64(index++, GetUInt64Value(PLAYER_FIELD_KNOWN_CURRENCIES));
         stmt->setUInt32(index++, GetUInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX));
         stmt->setUInt8(index++, GetDrunkValue());
         stmt->setUInt32(index++, GetHealth());
@@ -19007,8 +18924,14 @@ void Player::SaveToDB(bool create /*=false*/)
 
         ss.str("");
         // cache equipment...
-        for (uint32 i = 0; i < EQUIPMENT_SLOT_END * 2; ++i)
-            ss << GetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + i) << ' ';
+        for (uint32 i = 0; i < EQUIPMENT_SLOT_END; ++i)
+        {
+            ss << GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET) << " ";
+
+            uint32 ench1 = GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET + 1 + PERM_ENCHANTMENT_SLOT);
+            uint32 ench2 = GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET + 1 + TEMP_ENCHANTMENT_SLOT);
+            ss << uint32(MAKE_PAIR32(ench1, ench2)) << " ";
+        }
 
         // ...and bags for enum opcode
         for (uint32 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
@@ -19112,7 +19035,6 @@ void Player::SaveToDB(bool create /*=false*/)
         stmt->setUInt16(index++, GetUInt16Value(PLAYER_FIELD_KILLS, 0));
         stmt->setUInt16(index++, GetUInt16Value(PLAYER_FIELD_KILLS, 1));
         stmt->setUInt32(index++, GetUInt32Value(PLAYER_CHOSEN_TITLE));
-        stmt->setUInt64(index++, GetUInt64Value(PLAYER_FIELD_KNOWN_CURRENCIES));
         stmt->setUInt32(index++, GetUInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX));
         stmt->setUInt8(index++, GetDrunkValue());
         stmt->setUInt32(index++, GetHealth());
@@ -19132,8 +19054,14 @@ void Player::SaveToDB(bool create /*=false*/)
 
         ss.str("");
         // cache equipment...
-        for (uint32 i = 0; i < EQUIPMENT_SLOT_END * 2; ++i)
-            ss << GetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + i) << ' ';
+        for (uint32 i = 0; i < EQUIPMENT_SLOT_END; ++i)
+        {
+            ss << GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET) << " ";
+
+            uint32 ench1 = GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET + 1 + PERM_ENCHANTMENT_SLOT);
+            uint32 ench2 = GetUInt32Value(PLAYER_VISIBLE_ITEM_1_0 + i * MAX_VISIBLE_ITEM_OFFSET + 1 + TEMP_ENCHANTMENT_SLOT);
+            ss << uint32(MAKE_PAIR32(ench1, ench2)) << " ";
+        }
 
         // ...and bags for enum opcode
         for (uint32 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
@@ -19191,7 +19119,6 @@ void Player::SaveToDB(bool create /*=false*/)
     m_reputationMgr->SaveToDB(trans);
     _SaveEquipmentSets(trans);
     GetSession()->SaveTutorialsData(trans);                 // changed only while character in game
-    _SaveGlyphs(trans);
     _SaveInstanceTimeRestrictions(trans);
 
     // check if stats should only be saved on logout
@@ -23241,14 +23168,6 @@ bool Player::CanNoReagentCast(SpellInfo const* spellInfo) const
         HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PREPARATION))
         return true;
 
-    // Check no reagent use mask
-    flag96 noReagentMask;
-    noReagentMask[0] = GetUInt32Value(PLAYER_NO_REAGENT_COST_1);
-    noReagentMask[1] = GetUInt32Value(PLAYER_NO_REAGENT_COST_1+1);
-    noReagentMask[2] = GetUInt32Value(PLAYER_NO_REAGENT_COST_1+2);
-    if (spellInfo->SpellFamilyFlags  & noReagentMask)
-        return true;
-
     return false;
 }
 
@@ -23995,37 +23914,6 @@ uint32 Player::GetBarberShopCost(uint8 newhairstyle, uint8 newhaircolor, uint8 n
     return uint32(cost);
 }
 
-void Player::InitGlyphsForLevel()
-{
-    for (uint32 i = 0; i < sGlyphSlotStore.GetNumRows(); ++i)
-        if (GlyphSlotEntry const* gs = sGlyphSlotStore.LookupEntry(i))
-            if (gs->Order)
-                SetGlyphSlot(gs->Order - 1, gs->Id);
-
-    uint8 level = getLevel();
-    uint32 value = 0;
-
-    // 0x3F = 0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 for 80 level
-    if (level >= 15)
-        value |= (0x01 | 0x02);
-    if (level >= 30)
-        value |= 0x08;
-    if (level >= 50)
-        value |= 0x04;
-    if (level >= 70)
-        value |= 0x10;
-    if (level >= 80)
-        value |= 0x20;
-
-    SetUInt32Value(PLAYER_GLYPHS_ENABLED, value);
-}
-
-void Player::SetGlyph(uint8 slot, uint32 glyph)
-{
-    m_Glyphs[m_activeSpec][slot] = glyph;
-    SetUInt32Value(PLAYER_FIELD_GLYPHS_1 + slot, glyph);
-}
-
 bool Player::isTotalImmune() const
 {
     AuraEffectList const& immune = GetAuraEffectsByType(SPELL_AURA_SCHOOL_IMMUNITY);
@@ -24079,155 +23967,6 @@ void Player::SetTitle(CharTitlesEntry const* title, bool lost)
     data << uint32(title->bit_index);
     data << uint32(lost ? 0 : 1);                           // 1 - earned, 0 - lost
     SendDirectMessage(&data);
-}
-
-uint32 Player::GetRuneBaseCooldown(uint8 index)
-{
-    uint8 rune = GetBaseRune(index);
-    uint32 cooldown = RUNE_BASE_COOLDOWN;
-
-    AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
-    {
-        if ((*i)->GetMiscValue() == POWER_RUNE && (*i)->GetMiscValueB() == rune)
-            cooldown = cooldown * (100 - (*i)->GetAmount()) / 100;
-    }
-
-    return cooldown;
-}
-
-void Player::SetRuneCooldown(uint8 index, uint32 cooldown, bool casted /*= false*/)
-{
-    uint32 gracePeriod = GetRuneTimer(index);
-
-    if (casted && IsInCombat())
-    {
-        if (gracePeriod < 0xFFFFFFFF && cooldown > 0)
-        {
-            uint32 lessCd = std::min(uint32(2500), gracePeriod);
-            cooldown = (cooldown > lessCd) ? (cooldown - lessCd) : 0;
-            SetLastRuneGraceTimer(index, lessCd);
-        }
-
-        SetRuneTimer(index, 0);
-    }
-
-    m_runes->runes[index].Cooldown = cooldown;
-    m_runes->SetRuneState(index, (cooldown == 0) ? true : false);
-}
-
-void Player::SetRuneConvertAura(uint8 index, AuraEffect const* aura)
-{
-    m_runes->runes[index].ConvertAura = aura;
-}
-
-void Player::AddRuneByAuraEffect(uint8 index, RuneType newType, AuraEffect const* aura)
-{
-    SetRuneConvertAura(index, aura); ConvertRune(index, newType);
-}
-
-void Player::RemoveRunesByAuraEffect(AuraEffect const* aura)
-{
-    for (uint8 i = 0; i < MAX_RUNES; ++i)
-    {
-        if (m_runes->runes[i].ConvertAura == aura)
-        {
-            ConvertRune(i, GetBaseRune(i));
-            SetRuneConvertAura(i, nullptr);
-        }
-    }
-}
-
-void Player::RestoreBaseRune(uint8 index)
-{
-    AuraEffect const* aura = m_runes->runes[index].ConvertAura;
-    // If rune was converted by a non-passive aura that still active we should keep it converted
-    if (aura && !aura->GetSpellInfo()->HasAttribute(SPELL_ATTR0_PASSIVE))
-        return;
-    ConvertRune(index, GetBaseRune(index));
-    SetRuneConvertAura(index, nullptr);
-    // Don't drop passive talents providing rune convertion
-    if (!aura || aura->GetAuraType() != SPELL_AURA_CONVERT_RUNE)
-        return;
-    for (uint8 i = 0; i < MAX_RUNES; ++i)
-    {
-        if (aura == m_runes->runes[i].ConvertAura)
-            return;
-    }
-    aura->GetBase()->Remove();
-}
-
-void Player::ConvertRune(uint8 index, RuneType newType)
-{
-    SetCurrentRune(index, newType);
-
-    WorldPacket data(SMSG_CONVERT_RUNE, 2);
-    data << uint8(index);
-    data << uint8(newType);
-    SendDirectMessage(&data);
-}
-
-void Player::ResyncRunes(uint8 count) const
-{
-    WorldPacket data(SMSG_RESYNC_RUNES, 4 + count * 2);
-    data << uint32(count);
-    for (uint32 i = 0; i < count; ++i)
-    {
-        data << uint8(GetCurrentRune(i));                   // rune type
-        data << uint8(255 - (GetRuneCooldown(i) * 51));     // passed cooldown time (0-255)
-    }
-    SendDirectMessage(&data);
-}
-
-void Player::AddRunePower(uint8 index) const
-{
-    WorldPacket data(SMSG_ADD_RUNE_POWER, 4);
-    data << uint32(1 << index);                             // mask (0x00-0x3F probably)
-    SendDirectMessage(&data);
-}
-
-static RuneType runeSlotTypes[MAX_RUNES] =
-{
-    /*0*/ RUNE_BLOOD,
-    /*1*/ RUNE_BLOOD,
-    /*2*/ RUNE_UNHOLY,
-    /*3*/ RUNE_UNHOLY,
-    /*4*/ RUNE_FROST,
-    /*5*/ RUNE_FROST
-};
-
-void Player::InitRunes()
-{
-    if (getClass() != CLASS_DEATH_KNIGHT)
-        return;
-
-    m_runes = new Runes;
-
-    m_runes->runeState = 0;
-    m_runes->lastUsedRune = RUNE_BLOOD;
-
-    for (uint8 i = 0; i < MAX_RUNES; ++i)
-    {
-        SetBaseRune(i, runeSlotTypes[i]);                               // init base types
-        SetCurrentRune(i, runeSlotTypes[i]);                            // init current types
-        SetRuneCooldown(i, 0);                                          // reset cooldowns
-        SetRuneTimer(i, 0xFFFFFFFF);                                    // Reset rune flags
-        SetLastRuneGraceTimer(i, 0);
-        SetRuneConvertAura(i, nullptr);
-        m_runes->SetRuneState(i);
-    }
-
-    for (uint8 i = 0; i < NUM_RUNE_TYPES; ++i)
-        SetFloatValue(PLAYER_RUNE_REGEN_1 + i, 0.1f);
-}
-
-bool Player::IsBaseRuneSlotsOnCooldown(RuneType runeType) const
-{
-    for (uint8 i = 0; i < MAX_RUNES; ++i)
-        if (GetBaseRune(i) == runeType && GetRuneCooldown(i) == 0)
-            return false;
-
-    return true;
 }
 
 void Player::AutoStoreLoot(uint8 bag, uint8 slot, uint32 loot_id, LootStore const& store, bool broadcast)
@@ -24851,12 +24590,6 @@ void Player::LearnPetTalent(ObjectGuid petGuid, uint32 talentId, uint32 talentRa
     pet->SetFreeTalentPoints(CurTalentPoints - (talentRank - curtalent_maxrank + 1));
 }
 
-void Player::AddKnownCurrency(uint32 itemId)
-{
-    if (CurrencyTypesEntry const* ctEntry = sCurrencyTypesStore.LookupEntry(itemId))
-        SetFlag64(PLAYER_FIELD_KNOWN_CURRENCIES, (1LL << (ctEntry->BitIndex-1)));
-}
-
 void Player::UpdateFallInformationIfNeed(MovementInfo const& minfo, uint16 opcode)
 {
     if (m_lastFallTime >= minfo.fallTime || m_lastFallZ <= minfo.pos.GetPositionZ() || opcode == MSG_MOVE_FALL_LAND)
@@ -25300,53 +25033,6 @@ void Player::SetMap(Map* map)
     m_mapRef.link(map, this);
 }
 
-void Player::_LoadGlyphs(PreparedQueryResult result)
-{
-    // SELECT talentGroup, glyph1, glyph2, glyph3, glyph4, glyph5, glyph6 from character_glyphs WHERE guid = '%u'
-    if (!result)
-        return;
-
-    do
-    {
-        Field* fields = result->Fetch();
-
-        uint8 spec = fields[0].GetUInt8();
-        if (spec >= m_specsCount)
-            continue;
-
-        m_Glyphs[spec][0] = fields[1].GetUInt16();
-        m_Glyphs[spec][1] = fields[2].GetUInt16();
-        m_Glyphs[spec][2] = fields[3].GetUInt16();
-        m_Glyphs[spec][3] = fields[4].GetUInt16();
-        m_Glyphs[spec][4] = fields[5].GetUInt16();
-        m_Glyphs[spec][5] = fields[6].GetUInt16();
-    }
-    while (result->NextRow());
-}
-
-void Player::_SaveGlyphs(SQLTransaction& trans) const
-{
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_GLYPHS);
-    stmt->setUInt32(0, GetGUID().GetCounter());
-    trans->Append(stmt);
-
-
-    for (uint8 spec = 0; spec < m_specsCount; ++spec)
-    {
-        uint8 index = 0;
-
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_GLYPHS);
-        stmt->setUInt32(index++, GetGUID().GetCounter());
-
-        stmt->setUInt8(index++, spec);
-
-        for (uint8 i = 0; i < MAX_GLYPH_SLOT_INDEX; ++i)
-            stmt->setUInt16(index++, uint16(m_Glyphs[spec][i]));
-
-        trans->Append(stmt);
-    }
-}
-
 void Player::_LoadTalents(PreparedQueryResult result)
 {
     // SetPQuery(PLAYER_LOGIN_QUERY_LOADTALENTS, "SELECT spell, talentGroup FROM character_talent WHERE guid = '%u'", GUID_LOPART(m_guid));
@@ -25526,13 +25212,6 @@ void Player::ActivateSpec(uint8 spec)
         }
     }
 
-    // set glyphs
-    for (uint8 slot = 0; slot < MAX_GLYPH_SLOT_INDEX; ++slot)
-        // remove secondary glyph
-        if (uint32 oldglyph = m_Glyphs[m_activeSpec][slot])
-            if (GlyphPropertiesEntry const* old_gp = sGlyphPropertiesStore.LookupEntry(oldglyph))
-                RemoveAurasDueToSpell(old_gp->SpellId);
-
     SetActiveSpec(spec);
     uint32 spentTalents = 0;
 
@@ -25565,19 +25244,6 @@ void Player::ActivateSpec(uint8 spec)
                 spentTalents += (rank + 1);                  // increment the spentTalents count
             }
         }
-    }
-
-    // set glyphs
-    for (uint8 slot = 0; slot < MAX_GLYPH_SLOT_INDEX; ++slot)
-    {
-        uint32 glyph = m_Glyphs[m_activeSpec][slot];
-
-        // apply primary glyph
-        if (glyph)
-            if (GlyphPropertiesEntry const* gp = sGlyphPropertiesStore.LookupEntry(glyph))
-                CastSpell(this, gp->SpellId, true);
-
-        SetGlyph(slot, glyph);
     }
 
     m_usedTalentCount = spentTalents;

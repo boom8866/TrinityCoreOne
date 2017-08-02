@@ -54,6 +54,26 @@ typedef std::list<VendorItemCount> VendorItemCounts;
 
 #define MAX_VENDOR_ITEMS 150                                // Limitation in 3.x.x item count in SMSG_LIST_INVENTORY
 
+enum VirtualItemSlot
+{
+    VIRTUAL_ITEM_SLOT_0 = 0,
+    VIRTUAL_ITEM_SLOT_1 = 1,
+    VIRTUAL_ITEM_SLOT_2 = 2
+};
+
+#define MAX_VIRTUAL_ITEM_SLOT 3
+
+enum VirtualItemInfoByteOffset
+{
+    VIRTUAL_ITEM_INFO_0_OFFSET_CLASS = 0,
+    VIRTUAL_ITEM_INFO_0_OFFSET_SUBCLASS = 1,
+    VIRTUAL_ITEM_INFO_0_OFFSET_UNK0 = 2,
+    VIRTUAL_ITEM_INFO_0_OFFSET_MATERIAL = 3,
+
+    VIRTUAL_ITEM_INFO_1_OFFSET_INVENTORYTYPE = 0,
+    VIRTUAL_ITEM_INFO_1_OFFSET_SHEATH = 1,
+};
+
 //used for handling non-repeatable random texts
 typedef std::vector<uint8> CreatureTextRepeatIds;
 typedef std::unordered_map<uint8, CreatureTextRepeatIds> CreatureTextRepeatGroup;
@@ -342,6 +362,8 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         bool IsEscortNPC(bool onlyIfActive = true);
 
         bool CanGiveExperience() const;
+
+        void SetVirtualItem(VirtualItemSlot slot, uint32 item_id);
 
     protected:
         bool CreateFromProto(ObjectGuid::LowType guidlow, uint32 entry, CreatureData const* data = nullptr, uint32 vehId = 0);

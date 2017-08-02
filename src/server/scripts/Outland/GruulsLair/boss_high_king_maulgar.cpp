@@ -172,8 +172,8 @@ public:
                 Talk(SAY_ENRAGE);
 
                 DoCast(me, SPELL_DUAL_WIELD, true);
-                me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, 0);
-                me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID+1, 0);
+                me->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                me->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
             }
 
             if (Phase2)

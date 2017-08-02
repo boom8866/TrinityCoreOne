@@ -1368,8 +1368,6 @@ class TC_GAME_API Unit : public WorldObject
         ObjectGuid GetCharmGUID() const { return  GetGuidValue(UNIT_FIELD_CHARM); }
         void SetPetGUID(ObjectGuid guid) { m_SummonSlot[SUMMON_SLOT_PET] = guid; }
         ObjectGuid GetPetGUID() const { return m_SummonSlot[SUMMON_SLOT_PET]; }
-        void SetCritterGUID(ObjectGuid guid) { SetGuidValue(UNIT_FIELD_CRITTER, guid); }
-        ObjectGuid GetCritterGUID() const { return GetGuidValue(UNIT_FIELD_CRITTER); }
 
         bool IsControlledByPlayer() const { return m_ControlledByPlayer; }
         ObjectGuid GetCharmerOrOwnerGUID() const;

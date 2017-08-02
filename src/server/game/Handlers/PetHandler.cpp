@@ -37,29 +37,6 @@
 #include "World.h"
 #include "WorldPacket.h"
 
-void WorldSession::HandleDismissCritter(WorldPacket& recvData)
-{
-    ObjectGuid guid;
-    recvData >> guid;
-
-    TC_LOG_DEBUG("network.opcode", "WORLD: Received CMSG_DISMISS_CRITTER for %s", guid.ToString().c_str());
-
-    Unit* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*_player, guid);
-
-    if (!pet)
-    {
-        TC_LOG_DEBUG("entities.pet", "Vanitypet (%s) does not exist - player '%s' (guid: %u / account: %u) attempted to dismiss it (possibly lagged out)",
-            guid.ToString().c_str(), GetPlayer()->GetName().c_str(), GetPlayer()->GetGUID().GetCounter(), GetAccountId());
-        return;
-    }
-
-    if (_player->GetCritterGUID() == pet->GetGUID())
-    {
-         if (pet->GetTypeId() == TYPEID_UNIT && pet->IsSummon())
-             pet->ToTempSummon()->UnSummon();
-    }
-}
-
 void WorldSession::HandlePetAction(WorldPacket& recvData)
 {
     ObjectGuid guid1;

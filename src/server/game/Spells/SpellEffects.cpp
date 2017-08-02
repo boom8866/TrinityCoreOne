@@ -136,7 +136,6 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectPickPocket,                               // 71 SPELL_EFFECT_PICKPOCKET
     &Spell::EffectAddFarsight,                              // 72 SPELL_EFFECT_ADD_FARSIGHT
     &Spell::EffectUntrainTalents,                           // 73 SPELL_EFFECT_UNTRAIN_TALENTS
-    &Spell::EffectApplyGlyph,                               // 74 SPELL_EFFECT_APPLY_GLYPH
     &Spell::EffectHealMechanical,                           // 75 SPELL_EFFECT_HEAL_MECHANICAL          one spell: Mechanical Patch Kit
     &Spell::EffectSummonObjectWild,                         // 76 SPELL_EFFECT_SUMMON_OBJECT_WILD
     &Spell::EffectScriptEffect,                             // 77 SPELL_EFFECT_SCRIPT_EFFECT
@@ -208,7 +207,6 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectApplyAreaAura,                            //143 SPELL_EFFECT_APPLY_AREA_AURA_OWNER
     &Spell::EffectKnockBack,                                //144 SPELL_EFFECT_KNOCK_BACK_DEST
     &Spell::EffectPullTowards,                              //145 SPELL_EFFECT_PULL_TOWARDS_DEST                      Black Hole Effect
-    &Spell::EffectActivateRune,                             //146 SPELL_EFFECT_ACTIVATE_RUNE
     &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
     &Spell::EffectTriggerMissileSpell,                      //148 SPELL_EFFECT_TRIGGER_MISSILE_SPELL_WITH_VALUE
     &Spell::EffectChargeDest,                               //149 SPELL_EFFECT_CHARGE_DEST
@@ -4102,66 +4100,6 @@ void Spell::EffectActivateObject(SpellEffIndex /*effIndex*/)
     gameObjTarget->GetMap()->ScriptCommandStart(activateCommand, 0, m_caster, gameObjTarget);
 }
 
-void Spell::EffectApplyGlyph(SpellEffIndex effIndex)
-{
-    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT)
-        return;
-
-    if (m_glyphIndex >= MAX_GLYPH_SLOT_INDEX)
-        return;
-
-    Player* player = m_caster->ToPlayer();
-    if (!player)
-        return;
-
-    // glyph sockets level requirement
-    uint8 minLevel = 0;
-    switch (m_glyphIndex)
-    {
-        case 0:
-        case 1: minLevel = 15; break;
-        case 2: minLevel = 50; break;
-        case 3: minLevel = 30; break;
-        case 4: minLevel = 70; break;
-        case 5: minLevel = 80; break;
-    }
-    if (minLevel && m_caster->getLevel() < minLevel)
-    {
-        SendCastResult(SPELL_FAILED_GLYPH_SOCKET_LOCKED);
-        return;
-    }
-
-    // apply new one
-    if (uint32 glyph = m_spellInfo->Effects[effIndex].MiscValue)
-    {
-        if (GlyphPropertiesEntry const* gp = sGlyphPropertiesStore.LookupEntry(glyph))
-        {
-            if (GlyphSlotEntry const* gs = sGlyphSlotStore.LookupEntry(player->GetGlyphSlot(m_glyphIndex)))
-            {
-                if (gp->TypeFlags != gs->TypeFlags)
-                {
-                    SendCastResult(SPELL_FAILED_INVALID_GLYPH);
-                    return;                                 // glyph slot mismatch
-                }
-            }
-
-            // remove old glyph
-            if (uint32 oldglyph = player->GetGlyph(m_glyphIndex))
-            {
-                if (GlyphPropertiesEntry const* old_gp = sGlyphPropertiesStore.LookupEntry(oldglyph))
-                {
-                    player->RemoveAurasDueToSpell(old_gp->SpellId);
-                    player->SetGlyph(m_glyphIndex, 0);
-                }
-            }
-
-            player->CastSpell(m_caster, gp->SpellId, true);
-            player->SetGlyph(m_glyphIndex, glyph);
-            player->SendTalentsInfoData(false);
-        }
-    }
-}
-
 void Spell::EffectEnchantHeldItem(SpellEffIndex effIndex)
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
@@ -5326,72 +5264,6 @@ void Spell::EffectQuestStart(SpellEffIndex effIndex)
     }
 }
 
-void Spell::EffectActivateRune(SpellEffIndex effIndex)
-{
-    if (effectHandleMode != SPELL_EFFECT_HANDLE_LAUNCH)
-        return;
-
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    Player* player = m_caster->ToPlayer();
-
-    if (player->getClass() != CLASS_DEATH_KNIGHT)
-        return;
-
-    // needed later
-    m_runesState = m_caster->ToPlayer()->GetRunesState();
-
-    uint32 count = damage;
-    if (count == 0)
-        count = 1;
-
-    // Blood Tap
-    if (m_spellInfo->Id == 45529 && count > 0)
-    {
-        for (uint32 l = 0; l + 1 < MAX_RUNES && count > 0; ++l)
-        {
-            // Check if both runes are on cd as that is the only time when this needs to come into effect
-            if ((player->GetRuneCooldown(l) && player->GetBaseRune(l) == RUNE_BLOOD) && (player->GetRuneCooldown(l + 1) && player->GetBaseRune(l + 1) == RUNE_BLOOD))
-            {
-                // Should always update the rune with the lowest cd
-                if (l + 1 < MAX_RUNES && player->GetRuneCooldown(l) >= player->GetRuneCooldown(l + 1))
-                    ++l;
-
-                player->SetRuneCooldown(l, 0);
-                --count;
-                // is needed to push through to the client that the rune is active
-                player->ResyncRunes(MAX_RUNES);
-            }
-            else
-                break;
-        }
-    }
-
-    for (uint32 j = 0; j < MAX_RUNES && count > 0; ++j)
-    {
-        if (player->GetRuneCooldown(j) && player->GetCurrentRune(j) == RuneType(m_spellInfo->Effects[effIndex].MiscValue))
-        {
-            player->SetRuneCooldown(j, 0);
-            --count;
-        }
-    }
-
-    // Empower rune weapon
-    if (m_spellInfo->Id == 47568)
-    {
-        // Need to do this just once
-        if (effIndex != 0)
-            return;
-
-        for (uint32 i = 0; i < MAX_RUNES; ++i)
-        {
-            if (player->GetRuneCooldown(i) && (player->GetBaseRune(i) == RUNE_FROST))
-                player->SetRuneCooldown(i, 0);
-        }
-    }
-}
-
 void Spell::EffectCreateTamedPet(SpellEffIndex effIndex)
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
@@ -5544,10 +5416,10 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
 
         if (summon->GetEntry() == 27893)
         {
-            if (uint32 weapon = m_caster->GetUInt32Value(PLAYER_VISIBLE_ITEM_16_ENTRYID))
+            if (uint32 weapon = m_caster->GetUInt32Value(PLAYER_VISIBLE_ITEM_16_0)) //[[TRINITYONE: Might be wrong]]
             {
                 summon->SetDisplayId(11686); // modelid2
-                summon->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, weapon);
+                summon->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, weapon);
             }
             else
                 summon->SetDisplayId(1126); // modelid1

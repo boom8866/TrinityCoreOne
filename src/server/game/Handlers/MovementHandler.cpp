@@ -85,8 +85,6 @@ void WorldSession::HandleMoveWorldportAck()
     }
 
     float z = loc.GetPositionZ();
-    if (GetPlayer()->HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
-        z += GetPlayer()->GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
     GetPlayer()->Relocate(loc.GetPositionX(), loc.GetPositionY(), z, loc.GetOrientation());
     GetPlayer()->SetFallInformation(0, GetPlayer()->GetPositionZ());
 

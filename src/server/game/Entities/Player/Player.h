@@ -1433,12 +1433,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void ActivateSpec(uint8 spec);
         void LoadActions(PreparedQueryResult result);
 
-        void InitGlyphsForLevel();
-        void SetGlyphSlot(uint8 slot, uint32 slottype) { SetUInt32Value(PLAYER_FIELD_GLYPH_SLOTS_1 + slot, slottype); }
-        uint32 GetGlyphSlot(uint8 slot) { return GetUInt32Value(PLAYER_FIELD_GLYPH_SLOTS_1 + slot); }
-        void SetGlyph(uint8 slot, uint32 glyph);
-        uint32 GetGlyph(uint8 slot) { return m_Glyphs[m_activeSpec][slot]; }
-
         uint32 GetFreePrimaryProfessionPoints() const { return GetUInt32Value(PLAYER_CHARACTER_POINTS2); }
         void SetFreePrimaryProfessions(uint16 profs) { SetUInt32Value(PLAYER_CHARACTER_POINTS2, profs); }
         void InitPrimaryProfessions();

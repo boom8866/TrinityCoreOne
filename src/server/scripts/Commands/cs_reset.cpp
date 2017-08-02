@@ -125,10 +125,8 @@ public:
 
         target->_ApplyAllLevelScaleItemMods(false);
         target->SetLevel(startLevel);
-        target->InitRunes();
         target->InitStatsForLevel(true);
         target->InitTaxiNodesForLevel();
-        target->InitGlyphsForLevel();
         target->InitTalentForLevel();
         target->SetUInt32Value(PLAYER_XP, 0);
 
@@ -181,10 +179,8 @@ public:
         if (!HandleResetStatsOrLevelHelper(target))
             return false;
 
-        target->InitRunes();
         target->InitStatsForLevel(true);
         target->InitTaxiNodesForLevel();
-        target->InitGlyphsForLevel();
         target->InitTalentForLevel();
 
         return true;

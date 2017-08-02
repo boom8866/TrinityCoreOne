@@ -227,10 +227,10 @@ public:
                     break;
                 case 9:
                     Talk(SAY_TH_ARMORY);
-                    me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, THRALL_WEAPON_ITEM);
+                    me->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, THRALL_WEAPON_ITEM);
                     //me->SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO, THRALL_WEAPON_INFO);
                     //me->SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO+1, 781);
-                    me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID+1, THRALL_SHIELD_ITEM);
+                    me->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, THRALL_SHIELD_ITEM);
                     //me->SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO+2, THRALL_SHIELD_INFO);
                     //me->SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO+3, 1038);
                     break;
@@ -387,8 +387,8 @@ public:
             {
                 DoUnmount();
                 HadMount = false;
-                me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, 0);
-                me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID+1, 0);
+                me->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                me->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
                 me->SetDisplayId(THRALL_MODEL_UNEQUIPPED);
             }
             if (HasEscortState(STATE_ESCORT_ESCORTING))
