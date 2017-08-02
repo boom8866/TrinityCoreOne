@@ -1762,6 +1762,10 @@ uint32 DynamicObjectUpdateFieldFlags[DYNAMICOBJECT_END] =
     UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_BYTES
     UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_SPELLID
     UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_RADIUS
+    UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_POS_X
+    UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_POS_Y
+    UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_POS_Z
+    UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_FACING
     UF_FLAG_PUBLIC,                                         // DYNAMICOBJECT_CASTTIME
 };
 
@@ -1777,6 +1781,10 @@ uint32 CorpseUpdateFieldFlags[CORPSE_END] =
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_OWNER+1
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_PARTY
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_PARTY+1
+    UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_FACING
+    UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_POS_X
+    UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_POS_Y
+    UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_POS_Z
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_DISPLAY_ID
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_ITEM
     UF_FLAG_PUBLIC,                                         // CORPSE_FIELD_ITEM+1

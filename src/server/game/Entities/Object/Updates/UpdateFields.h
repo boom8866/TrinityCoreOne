@@ -422,22 +422,30 @@ enum EDynamicObjectFields
     DYNAMICOBJECT_BYTES                       = OBJECT_END + 0x0002, // Size: 1, Type: BYTES, Flags: PUBLIC
     DYNAMICOBJECT_SPELLID                     = OBJECT_END + 0x0003, // Size: 1, Type: INT, Flags: PUBLIC
     DYNAMICOBJECT_RADIUS                      = OBJECT_END + 0x0004, // Size: 1, Type: FLOAT, Flags: PUBLIC
-    DYNAMICOBJECT_CASTTIME                    = OBJECT_END + 0x0005, // Size: 1, Type: INT, Flags: PUBLIC
-    DYNAMICOBJECT_END                         = OBJECT_END + 0x0006
+    DYNAMICOBJECT_POS_X                       = OBJECT_END + 0x0005, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    DYNAMICOBJECT_POS_Y                       = OBJECT_END + 0x0006, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    DYNAMICOBJECT_POS_Z                       = OBJECT_END + 0x0007, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    DYNAMICOBJECT_FACING                      = OBJECT_END + 0x0008, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    DYNAMICOBJECT_CASTTIME                    = OBJECT_END + 0x0009, // Size: 1, Type: INT, Flags: PUBLIC
+    DYNAMICOBJECT_END                         = OBJECT_END + 0x000A
 };
 
 enum ECorpseFields
 {
     CORPSE_FIELD_OWNER                        = OBJECT_END + 0x0000, // Size: 2, Type: LONG, Flags: PUBLIC
     CORPSE_FIELD_PARTY                        = OBJECT_END + 0x0002, // Size: 2, Type: LONG, Flags: PUBLIC
-    CORPSE_FIELD_DISPLAY_ID                   = OBJECT_END + 0x0004, // Size: 1, Type: INT, Flags: PUBLIC
-    CORPSE_FIELD_ITEM                         = OBJECT_END + 0x0005, // Size: 19, Type: INT, Flags: PUBLIC
-    CORPSE_FIELD_BYTES_1                      = OBJECT_END + 0x0018, // Size: 1, Type: BYTES, Flags: PUBLIC
-    CORPSE_FIELD_BYTES_2                      = OBJECT_END + 0x0019, // Size: 1, Type: BYTES, Flags: PUBLIC
-    CORPSE_FIELD_GUILD                        = OBJECT_END + 0x001A, // Size: 1, Type: INT, Flags: PUBLIC
-    CORPSE_FIELD_FLAGS                        = OBJECT_END + 0x001B, // Size: 1, Type: INT, Flags: PUBLIC
-    CORPSE_FIELD_DYNAMIC_FLAGS                = OBJECT_END + 0x001C, // Size: 1, Type: INT, Flags: DYNAMIC
-    CORPSE_FIELD_PAD                          = OBJECT_END + 0x001D, // Size: 1, Type: INT, Flags: NONE
-    CORPSE_END                                = OBJECT_END + 0x001E
+    CORPSE_FIELD_FACING                       = OBJECT_END + 0x0004, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    CORPSE_FIELD_POS_X                        = OBJECT_END + 0x0005, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    CORPSE_FIELD_POS_Y                        = OBJECT_END + 0x0006, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    CORPSE_FIELD_POS_Z                        = OBJECT_END + 0x0007, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    CORPSE_FIELD_DISPLAY_ID                   = OBJECT_END + 0x0008, // Size: 1, Type: INT, Flags: PUBLIC
+    CORPSE_FIELD_ITEM                         = OBJECT_END + 0x0009, // Size: 19, Type: INT, Flags: PUBLIC
+    CORPSE_FIELD_BYTES_1                      = OBJECT_END + 0x001C, // Size: 1, Type: BYTES, Flags: PUBLIC
+    CORPSE_FIELD_BYTES_2                      = OBJECT_END + 0x001D, // Size: 1, Type: BYTES, Flags: PUBLIC
+    CORPSE_FIELD_GUILD                        = OBJECT_END + 0x001E, // Size: 1, Type: INT, Flags: PUBLIC
+    CORPSE_FIELD_FLAGS                        = OBJECT_END + 0x001F, // Size: 1, Type: INT, Flags: PUBLIC
+    CORPSE_FIELD_DYNAMIC_FLAGS                = OBJECT_END + 0x0020, // Size: 1, Type: INT, Flags: DYNAMIC
+    CORPSE_FIELD_PAD                          = OBJECT_END + 0x0021, // Size: 1, Type: INT, Flags: NONE
+    CORPSE_END                                = OBJECT_END + 0x0022
 };
 #endif
