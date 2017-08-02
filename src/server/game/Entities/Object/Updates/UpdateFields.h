@@ -400,12 +400,20 @@ enum EGameObjectFields
     OBJECT_FIELD_CREATED_BY                   = OBJECT_END + 0x0000, // Size: 2, Type: LONG, Flags: PUBLIC
     GAMEOBJECT_DISPLAYID                      = OBJECT_END + 0x0002, // Size: 1, Type: INT, Flags: PUBLIC
     GAMEOBJECT_FLAGS                          = OBJECT_END + 0x0003, // Size: 1, Type: INT, Flags: PUBLIC
-    GAMEOBJECT_PARENTROTATION                 = OBJECT_END + 0x0004, // Size: 4, Type: FLOAT, Flags: PUBLIC
-    GAMEOBJECT_DYNAMIC                        = OBJECT_END + 0x0008, // Size: 1, Type: TWO_SHORT, Flags: DYNAMIC
-    GAMEOBJECT_FACTION                        = OBJECT_END + 0x0009, // Size: 1, Type: INT, Flags: PUBLIC
-    GAMEOBJECT_LEVEL                          = OBJECT_END + 0x000A, // Size: 1, Type: INT, Flags: PUBLIC
-    GAMEOBJECT_BYTES_1                        = OBJECT_END + 0x000B, // Size: 1, Type: BYTES, Flags: PUBLIC
-    GAMEOBJECT_END                            = OBJECT_END + 0x000C
+    GAMEOBJECT_ROTATION                       = OBJECT_END + 0x0004, // Size: 4, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_STATE                          = OBJECT_END + 0x0008, // Size: 1, Type: INT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_POS_X                          = OBJECT_END + 0x0009, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_POS_Y                          = OBJECT_END + 0x000A, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_POS_Z                          = OBJECT_END + 0x000B, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_FACING                         = OBJECT_END + 0x000C, // Size: 1, Type: FLOAT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_DYN_FLAGS                      = OBJECT_END + 0x000D, // Size: 1, Type: INT, Flags: DYNAMIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_FACTION                        = OBJECT_END + 0x000E, // Size: 1, Type: INT, Flags: PUBLIC
+    GAMEOBJECT_TYPE_ID                        = OBJECT_END + 0x000F, // Size: 1, Type: INT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_LEVEL                          = OBJECT_END + 0x0010, // Size: 1, Type: INT, Flags: PUBLIC
+    GAMEOBJECT_ARTKIT                         = OBJECT_END + 0x0011, // Size: 1, Type: INT, Flags: PUBLIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_ANIMPROGRESS                   = OBJECT_END + 0x0012, // Size: 1, Type: INT, Flags: DYNAMIC [[TRINITYONE: NYI]]
+    GAMEOBJECT_PADDING                        = OBJECT_END + 0x0013, // Size: 1, Type: INT, Flags: NONE
+    GAMEOBJECT_END                            = OBJECT_END + 0x0014
 };
 
 enum EDynamicObjectFields

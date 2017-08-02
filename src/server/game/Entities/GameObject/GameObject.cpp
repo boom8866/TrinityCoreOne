@@ -1272,7 +1272,7 @@ void GameObject::UseDoorOrButton(uint32 time_to_restore, bool alternative /* = f
 
 void GameObject::SetGoArtKit(uint8 kit)
 {
-    SetByteValue(GAMEOBJECT_BYTES_1, 2, kit);
+    SetUInt32Value(GAMEOBJECT_ARTKIT, kit);
     GameObjectData* data = const_cast<GameObjectData*>(sObjectMgr->GetGameObjectData(m_spawnId));
     if (data)
         data->artKit = kit;
@@ -2064,11 +2064,11 @@ void GameObject::SetWorldRotation(float qx, float qy, float qz, float qw)
 }
 
 void GameObject::SetParentRotation(QuaternionData const& rotation)
-{
-    SetFloatValue(GAMEOBJECT_PARENTROTATION + 0, rotation.x);
+{ //[[TRINITYONE: NYI]]
+    /*SetFloatValue(GAMEOBJECT_PARENTROTATION + 0, rotation.x);
     SetFloatValue(GAMEOBJECT_PARENTROTATION + 1, rotation.y);
     SetFloatValue(GAMEOBJECT_PARENTROTATION + 2, rotation.z);
-    SetFloatValue(GAMEOBJECT_PARENTROTATION + 3, rotation.w);
+    SetFloatValue(GAMEOBJECT_PARENTROTATION + 3, rotation.w);*/
 }
 
 void GameObject::SetWorldRotationAngles(float z_rot, float y_rot, float x_rot)
@@ -2244,7 +2244,7 @@ void GameObject::SetLootState(LootState state, Unit* unit)
 
 void GameObject::SetGoState(GOState state)
 {
-    SetByteValue(GAMEOBJECT_BYTES_1, 0, state);
+    SetUInt32Value(GAMEOBJECT_STATE, state);
     if (AI())
         AI()->OnStateChanged(state);
     if (m_model && !IsTransport())
@@ -2395,8 +2395,8 @@ void GameObject::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* t
             (index == GAMEOBJECT_FLAGS && forcedFlags))
         {
             updateMask.SetBit(index);
-
-            if (index == GAMEOBJECT_DYNAMIC)
+            //[[TRINITYONE: NYI]]
+            /*if (index == GAMEOBJECT_DYNAMIC)
             {
                 uint16 dynFlags = 0;
                 int16 pathProgress = -1;
@@ -2433,8 +2433,8 @@ void GameObject::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* t
 
                 fieldBuffer << uint16(dynFlags);
                 fieldBuffer << int16(pathProgress);
-            }
-            else if (index == GAMEOBJECT_FLAGS)
+            }*/
+            if (index == GAMEOBJECT_FLAGS)
             {
                 uint32 goFlags = m_uint32Values[GAMEOBJECT_FLAGS];
                 if (GetGoType() == GAMEOBJECT_TYPE_CHEST)

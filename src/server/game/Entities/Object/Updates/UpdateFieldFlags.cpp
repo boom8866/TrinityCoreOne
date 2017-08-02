@@ -1731,14 +1731,22 @@ uint32 GameObjectUpdateFieldFlags[GAMEOBJECT_END] =
     UF_FLAG_PUBLIC,                                         // OBJECT_FIELD_CREATED_BY+1
     UF_FLAG_PUBLIC,                                         // GAMEOBJECT_DISPLAYID
     UF_FLAG_PUBLIC,                                         // GAMEOBJECT_FLAGS
-    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_PARENTROTATION
-    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_PARENTROTATION+1
-    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_PARENTROTATION+2
-    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_PARENTROTATION+3
-    UF_FLAG_DYNAMIC,                                        // GAMEOBJECT_DYNAMIC
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_ROTATION
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_ROTATION+1
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_ROTATION+2
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_ROTATION+3
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_STATE
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_POS_X
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_POS_Y
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_POS_Z
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_FACING
+    UF_FLAG_DYNAMIC,                                        // GAMEOBJECT_DYN_FLAGS
     UF_FLAG_PUBLIC,                                         // GAMEOBJECT_FACTION
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_TYPE_ID
     UF_FLAG_PUBLIC,                                         // GAMEOBJECT_LEVEL
-    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_BYTES_1
+    UF_FLAG_PUBLIC,                                         // GAMEOBJECT_ARTKIT
+    UF_FLAG_DYNAMIC,                                        // GAMEOBJECT_ANIMPROGRESS
+    UF_FLAG_NONE,                                           // GAMEOBJECT_PADDING
 };
 
 uint32 DynamicObjectUpdateFieldFlags[DYNAMICOBJECT_END] =
