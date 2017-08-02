@@ -144,33 +144,6 @@ void GmTicket::WritePacket(WorldPacket& data) const
     data << uint8(_viewed ? GMTICKET_OPENEDBYGM_STATUS_OPENED : GMTICKET_OPENEDBYGM_STATUS_NOT_OPENED); // whether or not it has been viewed
 }
 
-void GmTicket::SendResponse(WorldSession* session) const
-{
-    WorldPacket data(SMSG_GMRESPONSE_RECEIVED);
-    data << uint32(1);          // responseID
-    data << uint32(_id);        // ticketID
-    data << _message.c_str();
-
-    size_t len = _response.size();
-    char const* s = _response.c_str();
-
-    for (int i = 0; i < 4; i++)
-    {
-        if (len)
-        {
-            size_t writeLen = std::min<size_t>(len, 3999);
-            data.append(s, writeLen);
-
-            len -= writeLen;
-            s += writeLen;
-        }
-
-        data << uint8(0);
-    }
-
-    session->SendPacket(&data);
-}
-
 std::string GmTicket::FormatMessageString(ChatHandler& handler, bool detailed) const
 {
     time_t curTime = time(nullptr);

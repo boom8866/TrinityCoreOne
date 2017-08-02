@@ -181,7 +181,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
     uint32 lsize = uint32(lock.size());
 
     TC_LOG_DEBUG("lfg", "SMSG_LFG_PLAYER_INFO %s", GetPlayerInfo().c_str());
-    WorldPacket data(SMSG_LFG_PLAYER_INFO, 1 + rsize * (4 + 1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4) + 4 + lsize * (1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4));
+    /*WorldPacket data(SMSG_LFG_PLAYER_INFO, 1 + rsize * (4 + 1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4) + 4 + lsize * (1 + 4 + 4 + 4 + 4 + 1 + 4 + 4 + 4));
 
     data << uint8(randomDungeons.size());                  // Random Dungeon count
     for (lfg::LfgDungeonSet::const_iterator it = randomDungeons.begin(); it != randomDungeons.end(); ++it)
@@ -232,7 +232,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
         }
     }
     BuildPlayerLockDungeonBlock(data, lock);
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::HandleLfgPartyLockInfoRequestOpcode(WorldPacket&  /*recvData*/)
@@ -264,9 +264,9 @@ void WorldSession::HandleLfgPartyLockInfoRequestOpcode(WorldPacket&  /*recvData*
         size += 8 + 4 + uint32(it->second.size()) * (4 + 4);
 
     TC_LOG_DEBUG("lfg", "SMSG_LFG_PARTY_INFO %s", GetPlayerInfo().c_str());
-    WorldPacket data(SMSG_LFG_PARTY_INFO, 1 + size);
+    /*WorldPacket data(SMSG_LFG_PARTY_INFO, 1 + size);
     BuildPartyLockDungeonBlock(data, lockMap);
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::HandleLfrJoinOpcode(WorldPacket& recvData)
@@ -328,7 +328,7 @@ void WorldSession::SendLfgUpdatePlayer(lfg::LfgUpdateData const& updateData)
 
     TC_LOG_DEBUG("lfg", "SMSG_LFG_UPDATE_PLAYER %s updatetype: %u",
         GetPlayerInfo().c_str(), updateData.updateType);
-    WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 1 + 1 + (size > 0 ? 1 : 0) * (1 + 1 + 1 + 1 + size * 4 + updateData.comment.length()));
+    /*WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 1 + 1 + (size > 0 ? 1 : 0) * (1 + 1 + 1 + 1 + size * 4 + updateData.comment.length()));
     data << uint8(updateData.updateType);                  // Lfg Update type
     data << uint8(size > 0);                               // Extra info
     if (size)
@@ -342,7 +342,7 @@ void WorldSession::SendLfgUpdatePlayer(lfg::LfgUpdateData const& updateData)
             data << uint32(*it);
         data << updateData.comment;
     }
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgUpdateParty(const lfg::LfgUpdateData& updateData)
@@ -369,7 +369,7 @@ void WorldSession::SendLfgUpdateParty(const lfg::LfgUpdateData& updateData)
 
     TC_LOG_DEBUG("lfg", "SMSG_LFG_UPDATE_PARTY %s updatetype: %u",
         GetPlayerInfo().c_str(), updateData.updateType);
-    WorldPacket data(SMSG_LFG_UPDATE_PARTY, 1 + 1 + (size > 0 ? 1 : 0) * (1 + 1 + 1 + 1 + 1 + size * 4 + updateData.comment.length()));
+    /*WorldPacket data(SMSG_LFG_UPDATE_PARTY, 1 + 1 + (size > 0 ? 1 : 0) * (1 + 1 + 1 + 1 + 1 + size * 4 + updateData.comment.length()));
     data << uint8(updateData.updateType);                  // Lfg Update type
     data << uint8(size > 0);                               // Extra info
     if (size)
@@ -386,7 +386,7 @@ void WorldSession::SendLfgUpdateParty(const lfg::LfgUpdateData& updateData)
             data << uint32(*it);
         data << updateData.comment;
     }
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgRoleChosen(ObjectGuid guid, uint8 roles)
@@ -394,11 +394,11 @@ void WorldSession::SendLfgRoleChosen(ObjectGuid guid, uint8 roles)
     TC_LOG_DEBUG("lfg", "SMSG_LFG_ROLE_CHOSEN %s guid: %s roles: %u",
         GetPlayerInfo().c_str(), guid.ToString().c_str(), roles);
 
-    WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 8 + 1 + 4);
+    /*WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 8 + 1 + 4);
     data << uint64(guid);                                  // Guid
     data << uint8(roles > 0);                              // Ready
     data << uint32(roles);                                 // Roles
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgRoleCheckUpdate(lfg::LfgRoleCheck const& roleCheck)
@@ -410,7 +410,7 @@ void WorldSession::SendLfgRoleCheckUpdate(lfg::LfgRoleCheck const& roleCheck)
         dungeons = roleCheck.dungeons;
 
     TC_LOG_DEBUG("lfg", "SMSG_LFG_ROLE_CHECK_UPDATE %s", GetPlayerInfo().c_str());
-    WorldPacket data(SMSG_LFG_ROLE_CHECK_UPDATE, 4 + 1 + 1 + dungeons.size() * 4 + 1 + roleCheck.roles.size() * (8 + 1 + 4 + 1));
+    /*WorldPacket data(SMSG_LFG_ROLE_CHECK_UPDATE, 4 + 1 + 1 + dungeons.size() * 4 + 1 + roleCheck.roles.size() * (8 + 1 + 4 + 1));
 
     data << uint32(roleCheck.state);                       // Check result
     data << uint8(roleCheck.state == lfg::LFG_ROLECHECK_INITIALITING);
@@ -445,7 +445,7 @@ void WorldSession::SendLfgRoleCheckUpdate(lfg::LfgRoleCheck const& roleCheck)
             data << uint8(player ? player->getLevel() : 0);// Level
         }
     }
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
@@ -457,12 +457,12 @@ void WorldSession::SendLfgJoinResult(lfg::LfgJoinResultData const& joinData)
     TC_LOG_DEBUG("lfg", "SMSG_LFG_JOIN_RESULT %s checkResult: %u checkValue: %u",
         GetPlayerInfo().c_str(), joinData.result, joinData.state);
 
-    WorldPacket data(SMSG_LFG_JOIN_RESULT, 4 + 4 + size);
+    /*WorldPacket data(SMSG_LFG_JOIN_RESULT, 4 + 4 + size);
     data << uint32(joinData.result);                       // Check Result
     data << uint32(joinData.state);                        // Check Value
     if (!joinData.lockmap.empty())
         BuildPartyLockDungeonBlock(data, joinData.lockmap);
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
@@ -474,7 +474,7 @@ void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
         queueData.waitTimeTank, queueData.waitTimeHealer, queueData.waitTimeDps,
         queueData.queuedTime, queueData.tanks, queueData.healers, queueData.dps);
 
-    WorldPacket data(SMSG_LFG_QUEUE_STATUS, 4 + 4 + 4 + 4 + 4 +4 + 1 + 1 + 1 + 4);
+    /*WorldPacket data(SMSG_LFG_QUEUE_STATUS, 4 + 4 + 4 + 4 + 4 +4 + 1 + 1 + 1 + 4);
     data << uint32(queueData.dungeonId);                   // Dungeon
     data << int32(queueData.waitTimeAvg);                  // Average Wait time
     data << int32(queueData.waitTime);                     // Wait Time
@@ -485,7 +485,7 @@ void WorldSession::SendLfgQueueStatus(lfg::LfgQueueStatusData const& queueData)
     data << uint8(queueData.healers);                      // Healers needed
     data << uint8(queueData.dps);                          // Dps needed
     data << uint32(queueData.queuedTime);                  // Player wait time in queue
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgPlayerReward(lfg::LfgPlayerRewardData const& rewardData)
@@ -498,7 +498,7 @@ void WorldSession::SendLfgPlayerReward(lfg::LfgPlayerRewardData const& rewardDat
 
     uint8 itemNum = rewardData.quest->GetRewItemsCount();
 
-    WorldPacket data(SMSG_LFG_PLAYER_REWARD, 4 + 4 + 1 + 4 + 4 + 4 + 4 + 4 + 1 + itemNum * (4 + 4 + 4));
+    /*WorldPacket data(SMSG_LFG_PLAYER_REWARD, 4 + 4 + 1 + 4 + 4 + 4 + 4 + 4 + 1 + itemNum * (4 + 4 + 4));
     data << uint32(rewardData.rdungeonEntry);              // Random Dungeon Finished
     data << uint32(rewardData.sdungeonEntry);              // Dungeon Finished
     data << uint8(rewardData.done);
@@ -519,7 +519,7 @@ void WorldSession::SendLfgPlayerReward(lfg::LfgPlayerRewardData const& rewardDat
                 data << uint32(rewardData.quest->RewardItemIdCount[i]);
             }
     }
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgBootProposalUpdate(lfg::LfgPlayerBoot const& boot)
@@ -544,7 +544,7 @@ void WorldSession::SendLfgBootProposalUpdate(lfg::LfgPlayerBoot const& boot)
         GetPlayerInfo().c_str(), uint8(boot.inProgress), uint8(playerVote != lfg::LFG_ANSWER_PENDING),
         uint8(playerVote == lfg::LFG_ANSWER_AGREE), boot.victim.ToString().c_str(), votesNum, agreeNum,
         secsleft, lfg::LFG_GROUP_KICK_VOTES_NEEDED, boot.reason.c_str());
-    WorldPacket data(SMSG_LFG_BOOT_PROPOSAL_UPDATE, 1 + 1 + 1 + 8 + 4 + 4 + 4 + 4 + boot.reason.length());
+    /*WorldPacket data(SMSG_LFG_BOOT_PROPOSAL_UPDATE, 1 + 1 + 1 + 8 + 4 + 4 + 4 + 4 + boot.reason.length());
     data << uint8(boot.inProgress);                        // Vote in progress
     data << uint8(playerVote != lfg::LFG_ANSWER_PENDING);  // Did Vote
     data << uint8(playerVote == lfg::LFG_ANSWER_AGREE);    // Agree
@@ -554,7 +554,7 @@ void WorldSession::SendLfgBootProposalUpdate(lfg::LfgPlayerBoot const& boot)
     data << uint32(secsleft);                              // Time Left
     data << uint32(lfg::LFG_GROUP_KICK_VOTES_NEEDED);      // Needed Votes
     data << boot.reason.c_str();                           // Kick reason
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgUpdateProposal(lfg::LfgProposal const& proposal)
@@ -577,7 +577,7 @@ void WorldSession::SendLfgUpdateProposal(lfg::LfgProposal const& proposal)
 
     dungeonEntry = sLFGMgr->GetLFGDungeonEntry(dungeonEntry);
 
-    WorldPacket data(SMSG_LFG_PROPOSAL_UPDATE, 4 + 1 + 4 + 4 + 1 + 1 + proposal.players.size() * (4 + 1 + 1 + 1 + 1 +1));
+    /*WorldPacket data(SMSG_LFG_PROPOSAL_UPDATE, 4 + 1 + 4 + 4 + 1 + 1 + proposal.players.size() * (4 + 1 + 1 + 1 + 1 +1));
     data << uint32(dungeonEntry);                          // Dungeon
     data << uint8(proposal.state);                         // Proposal state
     data << uint32(proposal.id);                           // Proposal ID
@@ -603,16 +603,16 @@ void WorldSession::SendLfgUpdateProposal(lfg::LfgProposal const& proposal)
         data << uint8(player.accept != lfg::LFG_ANSWER_PENDING);// Answered
         data << uint8(player.accept == lfg::LFG_ANSWER_AGREE);  // Accepted
     }
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgLfrList(bool update)
 {
     TC_LOG_DEBUG("lfg", "SMSG_LFG_LFR_LIST %s update: %u",
         GetPlayerInfo().c_str(), update ? 1 : 0);
-    WorldPacket data(SMSG_LFG_UPDATE_SEARCH, 1);
+    /*WorldPacket data(SMSG_LFG_UPDATE_SEARCH, 1);
     data << uint8(update);                                 // In Lfg Queue?
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgDisabled()
@@ -626,18 +626,18 @@ void WorldSession::SendLfgOfferContinue(uint32 dungeonEntry)
 {
     TC_LOG_DEBUG("lfg", "SMSG_LFG_OFFER_CONTINUE %s dungeon entry: %u",
         GetPlayerInfo().c_str(), dungeonEntry);
-    WorldPacket data(SMSG_LFG_OFFER_CONTINUE, 4);
+    /*WorldPacket data(SMSG_LFG_OFFER_CONTINUE, 4);
     data << uint32(dungeonEntry);
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 void WorldSession::SendLfgTeleportError(uint8 err)
 {
     TC_LOG_DEBUG("lfg", "SMSG_LFG_TELEPORT_DENIED %s reason: %u",
         GetPlayerInfo().c_str(), err);
-    WorldPacket data(SMSG_LFG_TELEPORT_DENIED, 4);
+    /*WorldPacket data(SMSG_LFG_TELEPORT_DENIED, 4);
     data << uint32(err);                                   // Error
-    SendPacket(&data);
+    SendPacket(&data);*/ //[[TRINITYONE]]
 }
 
 /*

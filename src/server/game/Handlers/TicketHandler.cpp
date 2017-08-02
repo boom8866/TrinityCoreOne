@@ -254,25 +254,3 @@ void WorldSession::HandleReportLag(WorldPacket& recvData)
     stmt->setUInt32(7, time(nullptr));
     CharacterDatabase.Execute(stmt);
 }
-
-void WorldSession::HandleGMResponseResolve(WorldPacket& /*recvPacket*/)
-{
-    // empty packet
-    if (GmTicket* ticket = sTicketMgr->GetTicketByPlayer(GetPlayer()->GetGUID()))
-    {
-        uint8 getSurvey = 0;
-        if (roll_chance_f(sWorld->getFloatConfig(CONFIG_CHANCE_OF_GM_SURVEY)))
-            getSurvey = 1;
-
-        WorldPacket data(SMSG_GMRESPONSE_STATUS_UPDATE, 4);
-        data << uint8(getSurvey);
-        SendPacket(&data);
-
-        WorldPacket data2(SMSG_GMTICKET_DELETETICKET, 4);
-        data2 << uint32(GMTICKET_RESPONSE_TICKET_DELETED);
-        SendPacket(&data2);
-
-        sTicketMgr->CloseTicket(ticket->GetId(), GetPlayer()->GetGUID());
-        sTicketMgr->SendTicket(this, nullptr);
-    }
-}

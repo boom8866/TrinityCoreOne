@@ -2760,10 +2760,10 @@ bool Creature::SetDisableGravity(bool disable, bool packetOnly/*=false*/)
 
     if (!movespline->Initialized())
         return true;
-
-    WorldPacket data(disable ? SMSG_SPLINE_MOVE_GRAVITY_DISABLE : SMSG_SPLINE_MOVE_GRAVITY_ENABLE, 9);
+    //[[TRINITYONE]]
+    /*WorldPacket data(disable ? SMSG_SPLINE_MOVE_GRAVITY_DISABLE : SMSG_SPLINE_MOVE_GRAVITY_ENABLE, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, false);
+    SendMessageToSet(&data, false);*/
     return true;
 }
 

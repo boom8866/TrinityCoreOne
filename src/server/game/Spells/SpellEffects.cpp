@@ -4414,9 +4414,9 @@ void Spell::EffectForceDeselect(SpellEffIndex /*effIndex*/)
         return;
 
     float dist = m_caster->GetVisibilityRange();
-
+    //[[TRINITYONE]]
     // clear focus
-    WorldPacket data(SMSG_BREAK_TARGET, m_caster->GetPackGUID().size());
+    /*WorldPacket data(SMSG_BREAK_TARGET, m_caster->GetPackGUID().size());
     data << m_caster->GetPackGUID();
     Trinity::MessageDistDelivererToHostile notifierBreak(m_caster, &data, dist);
     Cell::VisitWorldObjects(m_caster, notifierBreak, dist);
@@ -4425,7 +4425,7 @@ void Spell::EffectForceDeselect(SpellEffIndex /*effIndex*/)
     data.Initialize(SMSG_CLEAR_TARGET, 8);
     data << uint64(m_caster->GetGUID());
     Trinity::MessageDistDelivererToHostile notifierClear(m_caster, &data, dist);
-    Cell::VisitWorldObjects(m_caster, notifierClear, dist);
+    Cell::VisitWorldObjects(m_caster, notifierClear, dist);*/
 
     // we should also force pets to remove us from current target
     Unit::AttackerSet attackerSet;

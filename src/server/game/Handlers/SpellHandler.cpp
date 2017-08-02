@@ -696,11 +696,11 @@ void WorldSession::HandleUpdateProjectilePosition(WorldPacket& recvPacket)
     // we changed dest, recalculate flight time
     spell->RecalculateDelayMomentForDst();
 
-    WorldPacket data(SMSG_SET_PROJECTILE_POSITION, 21);
+    /*WorldPacket data(SMSG_SET_PROJECTILE_POSITION, 21);
     data << uint64(casterGuid);
     data << uint8(castCount);
     data << float(x);
     data << float(y);
     data << float(z);
-    caster->SendMessageToSet(&data, true);
+    caster->SendMessageToSet(&data, true);*/ //[[TRINITYONE]]
 }

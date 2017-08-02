@@ -213,12 +213,12 @@ void AuraApplication::BuildUpdatePacket(ByteBuffer& data, bool remove) const
 void AuraApplication::ClientUpdate(bool remove)
 {
     _needClientUpdate = false;
-
-    WorldPacket data(SMSG_AURA_UPDATE);
+    //[[TRINITYONE]]
+    /*WorldPacket data(SMSG_AURA_UPDATE);
     data << GetTarget()->GetPackGUID();
     BuildUpdatePacket(data, remove);
 
-    _target->SendMessageToSet(&data, true);
+    _target->SendMessageToSet(&data, true);*/
 }
 
 uint8 Aura::BuildEffectMaskForOwner(SpellInfo const* spellProto, uint8 availableEffectMask, WorldObject* owner)

@@ -867,12 +867,6 @@ void Map::ScriptsProcess()
                     player->PlayerTalkClass->SendCloseGossip();
                 break;
 
-            case SCRIPT_COMMAND_PLAYMOVIE:
-                // Source must be Player.
-                if (Player* player = _GetScriptPlayer(source, true, step.script))
-                    player->SendMovieStart(step.script->PlayMovie.MovieID);
-                break;
-
             case SCRIPT_COMMAND_MOVEMENT:
                 // Source must be Creature.
                 if (Creature* cSource = _GetScriptCreature(source, true, step.script))

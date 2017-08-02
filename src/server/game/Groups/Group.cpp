@@ -424,11 +424,6 @@ bool Group::AddMember(Player* player)
                 player->SetDungeonDifficulty(GetDungeonDifficulty());
                 player->SendDungeonDifficulty(true);
             }
-            if (player->GetRaidDifficulty() != GetRaidDifficulty())
-            {
-                player->SetRaidDifficulty(GetRaidDifficulty());
-                player->SendRaidDifficulty(true);
-            }
         }
     }
     player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
@@ -2001,9 +1996,6 @@ void Group::SetRaidDifficulty(Difficulty difficulty)
         Player* player = itr->GetSource();
         if (!player->GetSession())
             continue;
-
-        player->SetRaidDifficulty(difficulty);
-        player->SendRaidDifficulty(true);
     }
 }
 

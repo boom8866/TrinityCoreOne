@@ -2571,19 +2571,6 @@ public:
                         player->CastSpell(player, SPELL_TIRED_PLAYER, true);
                     break;
                 }
-                case GOSSIP_OPTION_MAIL:
-                {
-                    me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_MAILBOX);
-                    player->GetSession()->SendShowMailBox(me->GetGUID());
-
-                    uint32 _mailAura = IsArgentSquire() ? SPELL_AURA_POSTMAN_S : SPELL_AURA_POSTMAN_G;
-                    if (!me->HasAura(_mailAura))
-                        DoCastSelf(_mailAura);
-
-                    if (!player->HasAura(SPELL_TIRED_PLAYER))
-                        player->CastSpell(player, SPELL_TIRED_PLAYER, true);
-                    break;
-                }
                 case GOSSIP_OPTION_DARNASSUS_SENJIN_PENNANT:
                 case GOSSIP_OPTION_EXODAR_UNDERCITY_PENNANT:
                 case GOSSIP_OPTION_GNOMEREGAN_ORGRIMMAR_PENNANT:

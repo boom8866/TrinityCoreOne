@@ -418,15 +418,15 @@ void SpellHistory::ModifyCooldown(uint32 spellId, int32 cooldownModMs)
         itr->second.CooldownEnd += offset;
     else
         EraseCooldown(itr);
-
-    if (Player* playerOwner = GetPlayerOwner())
+    //[[TRINITYONE]]
+    /*if (Player* playerOwner = GetPlayerOwner())
     {
         WorldPacket modifyCooldown(SMSG_MODIFY_COOLDOWN, 4 + 8 + 4);
         modifyCooldown << uint32(spellId);
         modifyCooldown << uint64(_owner->GetGUID());
         modifyCooldown << int32(cooldownModMs);
         playerOwner->SendDirectMessage(&modifyCooldown);
-    }
+    }*/
 }
 
 void SpellHistory::ResetCooldown(uint32 spellId, bool update /*= false*/)

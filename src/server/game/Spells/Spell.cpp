@@ -3841,11 +3841,11 @@ void Spell::SendCastResult(Player* caster, SpellInfo const* spellInfo, uint8 cas
 {
     if (result == SPELL_CAST_OK)
         return;
-
-    WorldPacket data(SMSG_CAST_FAILED, 1 + 4 + 1);
+    //[[TRINITYONE]]
+    /*WorldPacket data(SMSG_CAST_FAILED, 1 + 4 + 1);
     WriteCastResultInfo(data, caster, spellInfo, castCount, result, customError, param1, param2);
 
-    caster->SendDirectMessage(&data);
+    caster->SendDirectMessage(&data);*/
 }
 
 void Spell::SendCastResult(SpellCastResult result, uint32* param1 /*= nullptr*/, uint32* param2 /*= nullptr*/) const

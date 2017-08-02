@@ -158,7 +158,6 @@ public:
                 {
                     if (Creature* council = instance->GetCreature(bossData))
                     {
-                        instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, council);
                         DoZoneInCombat(council);
                     }
                 }
@@ -174,9 +173,6 @@ public:
             if (!me->IsInEvadeMode())
             {
                 _inCombat = false;
-                for (uint32 bossData : CouncilData)
-                    if (Creature* council = instance->GetCreature(bossData))
-                        instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, council);
 
                 summons.DespawnAll();
                 _DespawnAtEvade();
@@ -194,7 +190,6 @@ public:
                 if (Creature* council = instance->GetCreature(bossData))
                 {
                     // Allow loot
-                    instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, council);
                     council->LowerPlayerDamageReq(council->GetMaxHealth());
                     council->CastSpell(council, SPELL_QUIET_SUICIDE, true);
                 }

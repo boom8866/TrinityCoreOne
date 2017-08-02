@@ -346,8 +346,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     if (owner->GetGroup())
         owner->SetGroupUpdateFlag(GROUP_UPDATE_PET);
 
-    owner->SendTalentsInfoData(true);
-
     if (getPetType() == HUNTER_PET)
     {
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PET_DECLINED_NAME);
@@ -1415,7 +1413,7 @@ bool Pet::addSpell(uint32 spellId, ActiveStates active /*= ACT_DECIDE*/, PetSpel
 
 bool Pet::learnSpell(uint32 spell_id)
 {
-    // prevent duplicated entires in spell book
+    /*// prevent duplicated entires in spell book
     if (!addSpell(spell_id))
         return false;
 
@@ -1425,7 +1423,7 @@ bool Pet::learnSpell(uint32 spell_id)
         data << uint32(spell_id);
         GetOwner()->SendDirectMessage(&data);
         GetOwner()->PetSpellInitialize();
-    }
+    }*/ //[[TRINITYONE]]
     return true;
 }
 
@@ -1470,7 +1468,7 @@ void Pet::InitLevelupSpellsForLevel()
 
 bool Pet::unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
 {
-    if (removeSpell(spell_id, learn_prev, clear_ab))
+    /*if (removeSpell(spell_id, learn_prev, clear_ab))
     {
         if (!m_loading)
         {
@@ -1479,7 +1477,7 @@ bool Pet::unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
             GetOwner()->SendDirectMessage(&data);
         }
         return true;
-    }
+    }*/ //[[TRINITYONE]]
     return false;
 }
 
@@ -1715,9 +1713,6 @@ void Pet::InitTalentForLevel()
         resetTalents(); // Remove all talent points
 
     SetFreeTalentPoints(talentPointsForLevel - m_usedTalentCount);
-
-    if (!m_loading)
-        GetOwner()->SendTalentsInfoData(true);
 }
 
 uint8 Pet::GetMaxTalentPointsForLevel(uint8 level) const

@@ -194,16 +194,3 @@ WorldPacket const* WorldPackets::Query::QueryItemSingleResponse::Write()
 
     return &_worldPacket;
 }
-
-void WorldPackets::Query::QuestPOIQuery::Read()
-{
-    _worldPacket >> MissingQuestCount; // quest count, max=25
-
-    if (MissingQuestCount <= MAX_QUEST_LOG_SIZE)
-    {
-        for (uint8 i = 0; i < MissingQuestCount; ++i)
-            _worldPacket >> MissingQuestPOIs[i];
-    }
-
-    _worldPacket.rfinish();
-}

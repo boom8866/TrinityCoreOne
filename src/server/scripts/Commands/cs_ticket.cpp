@@ -252,9 +252,6 @@ public:
             ticket->AppendResponse(response);
         }
 
-        if (Player* player = ticket->GetPlayer())
-            ticket->SendResponse(player->GetSession());
-
         Player* gm = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
 
         SQLTransaction trans = SQLTransaction(nullptr);

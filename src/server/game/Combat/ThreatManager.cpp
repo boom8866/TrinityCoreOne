@@ -422,8 +422,6 @@ void ThreatManager::AddThreat(Unit* victim, float amount, SpellInfo const* spell
 
 void ThreatManager::ClearAllThreat()
 {
-    if (iOwner->CanHaveThreatList(true) && !isThreatListEmpty())
-        iOwner->SendClearThreatListOpcode();
     clearReferences();
 }
 
@@ -542,10 +540,6 @@ void ThreatManager::tauntFadeOut(Unit* taunter)
 
 void ThreatManager::setCurrentVictim(HostileReference* pHostileReference)
 {
-    if (pHostileReference && pHostileReference != iCurrentVictim)
-    {
-        iOwner->SendChangeCurrentVictimOpcode(pHostileReference);
-    }
     iCurrentVictim = pHostileReference;
 }
 
@@ -574,7 +568,6 @@ void ThreatManager::processThreatEvent(ThreatRefStatusChangeEvent* threatRefStat
                     setCurrentVictim(nullptr);
                     setDirty(true);
                 }
-                iOwner->SendRemoveFromThreatListOpcode(hostilRef);
                 iThreatContainer.remove(hostilRef);
                 iThreatOfflineContainer.addReference(hostilRef);
             }
@@ -592,7 +585,6 @@ void ThreatManager::processThreatEvent(ThreatRefStatusChangeEvent* threatRefStat
                 setCurrentVictim(nullptr);
                 setDirty(true);
             }
-            iOwner->SendRemoveFromThreatListOpcode(hostilRef);
             if (hostilRef->isOnline())
                 iThreatContainer.remove(hostilRef);
             else

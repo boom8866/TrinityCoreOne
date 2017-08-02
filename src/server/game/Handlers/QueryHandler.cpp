@@ -320,55 +320,11 @@ void WorldSession::HandleCorpseMapPositionQuery(WorldPacket& recvData)
 
     uint32 unk;
     recvData >> unk;
-
-    WorldPacket data(SMSG_CORPSE_MAP_POSITION_QUERY_RESPONSE, 4+4+4+4);
+    //[[TRINITYONE]]
+    /*WorldPacket data(SMSG_CORPSE_MAP_POSITION_QUERY_RESPONSE, 4+4+4+4);
     data << float(0);
     data << float(0);
     data << float(0);
     data << float(0);
-    SendPacket(&data);
-}
-
-void WorldSession::HandleQuestPOIQuery(WorldPackets::Query::QuestPOIQuery& query)
-{
-    if (query.MissingQuestCount > MAX_QUEST_LOG_SIZE)
-        return;
-
-    // Read quest ids and add the in a unordered_set so we don't send POIs for the same quest multiple times
-    std::unordered_set<uint32> questIds;
-    for (uint32 i = 0; i < query.MissingQuestCount; ++i)
-        questIds.insert(query.MissingQuestPOIs[i]); // quest id
-
-    WorldPacket data(SMSG_QUEST_POI_QUERY_RESPONSE, 4 + (4 + 4 + 40) * questIds.size());
-    data << uint32(questIds.size()); // count
-
-    for (uint32 questId : questIds)
-    {
-        uint16 const questSlot = _player->FindQuestSlot(questId);
-        if (questSlot != MAX_QUEST_LOG_SIZE && _player->GetQuestSlotQuestId(questSlot) == questId)
-        {
-            if (QuestPOIWrapper const* poiWrapper = sObjectMgr->GetQuestPOIWrapper(questId))
-            {
-                if (sWorld->getBoolConfig(CONFIG_CACHE_DATA_QUERIES))
-                    data.append(poiWrapper->QueryDataBuffer);
-                else
-                {
-                    ByteBuffer POIByteBuffer = poiWrapper->BuildQueryData();
-                    data.append(POIByteBuffer);
-                }
-            }
-            else
-            {
-                data << uint32(questId); // quest ID
-                data << uint32(0); // POI count
-            }
-        }
-        else
-        {
-            data << uint32(questId); // quest ID
-            data << uint32(0); // POI count
-        }
-    }
-
-    SendPacket(&data);
+    SendPacket(&data);*/
 }

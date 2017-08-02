@@ -64,7 +64,6 @@ public:
             { "qpartymsg",     rbac::RBAC_PERM_COMMAND_DEBUG_SEND_QPARTYMSG,     false, &HandleDebugSendQuestPartyMsgCommand,   "" },
             { "qinvalidmsg",   rbac::RBAC_PERM_COMMAND_DEBUG_SEND_QINVALIDMSG,   false, &HandleDebugSendQuestInvalidMsgCommand, "" },
             { "sellerror",     rbac::RBAC_PERM_COMMAND_DEBUG_SEND_SELLERROR,     false, &HandleDebugSendSellErrorCommand,       "" },
-            { "setphaseshift", rbac::RBAC_PERM_COMMAND_DEBUG_SEND_SETPHASESHIFT, false, &HandleDebugSendSetPhaseShiftCommand,   "" },
             { "spellfail",     rbac::RBAC_PERM_COMMAND_DEBUG_SEND_SPELLFAIL,     false, &HandleDebugSendSpellFailCommand,       "" },
         };
         static std::vector<ChatCommand> debugCommandTable =
@@ -163,7 +162,7 @@ public:
             return false;
         }
 
-        handler->GetSession()->GetPlayer()->SendMovieStart(movieId);
+        //[[TRINITYONE]] handler->GetSession()->GetPlayer()->SendMovieStart(movieId);
         return true;
     }
 
@@ -250,8 +249,8 @@ public:
 
         char* fail2 = strtok(nullptr, " ");
         uint8 failArg2 = fail2 ? (uint8)atoi(fail2) : 0;
-
-        WorldPacket data(SMSG_CAST_FAILED, 5);
+        //[[TRINITYONE]]
+        /*WorldPacket data(SMSG_CAST_FAILED, 5);
         data << uint8(0);
         data << uint32(133);
         data << uint8(failNum);
@@ -260,7 +259,7 @@ public:
         if (fail2)
             data << uint32(failArg2);
 
-        handler->GetSession()->SendPacket(&data);
+        handler->GetSession()->SendPacket(&data);*/
         return true;
     }
 
@@ -886,16 +885,6 @@ public:
         while (ss.str().size() < 128000)
             ss << stuffingString;
         handler->SendSysMessage(ss.str().c_str());
-        return true;
-    }
-
-    static bool HandleDebugSendSetPhaseShiftCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
-
-        uint32 PhaseShift = atoi(args);
-        handler->GetSession()->SendSetPhaseShift(PhaseShift);
         return true;
     }
 

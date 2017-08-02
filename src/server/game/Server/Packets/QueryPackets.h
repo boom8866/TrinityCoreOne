@@ -223,17 +223,6 @@ namespace WorldPackets
                 bool Allow = false;
                 ItemStats Stats;
         };
-
-        class QuestPOIQuery final : public ClientPacket
-        {
-            public:
-                QuestPOIQuery(WorldPacket&& packet) : ClientPacket(CMSG_QUEST_POI_QUERY, std::move(packet)) { }
-
-                void Read() override;
-
-                uint32 MissingQuestCount = 0;
-                uint32 MissingQuestPOIs[MAX_QUEST_LOG_SIZE] = { };
-        };
     }
 }
 

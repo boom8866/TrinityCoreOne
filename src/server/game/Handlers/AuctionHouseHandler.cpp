@@ -783,8 +783,8 @@ void WorldSession::HandleAuctionListItems(WorldPacket& recvData)
 void WorldSession::HandleAuctionListPendingSales(WorldPacket& recvData)
 {
     TC_LOG_DEBUG("network", "WORLD: Received CMSG_AUCTION_LIST_PENDING_SALES");
-
-    recvData.read_skip<uint64>();
+    //[[TRINITYONE]]
+    /*recvData.read_skip<uint64>();
 
     uint32 count = 0;
 
@@ -797,6 +797,6 @@ void WorldSession::HandleAuctionListPendingSales(WorldPacket& recvData)
         data << uint32(0);
         data << uint32(0);
         data << float(0);
-    }*/
-    SendPacket(&data);
+    }
+    SendPacket(&data);*/
 }

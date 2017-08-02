@@ -2633,9 +2633,6 @@ void Player::InitTalentForLevel()
         else
             SetFreeTalentPoints(talentPointsForLevel - m_usedTalentCount);
     }
-
-    if (!GetSession()->PlayerLoading())
-        SendTalentsInfoData(false);                         // update at client
 }
 
 void Player::InitStatsForLevel(bool reapplyMods)
@@ -4378,9 +4375,9 @@ void Player::SetMovement(PlayerMovementType pType)
 */
 void Player::BuildPlayerRepop()
 {
-    WorldPacket data(SMSG_PRE_RESURRECT, GetPackGUID().size());
+    /*WorldPacket data(SMSG_PRE_RESURRECT, GetPackGUID().size());
     data << GetPackGUID();
-    SendDirectMessage(&data);
+    SendDirectMessage(&data);*/ //[[TRINITYONE]]
 
     if (getRace() == RACE_NIGHTELF)
         CastSpell(this, 20584, true);
@@ -6259,13 +6256,6 @@ void Player::SendCinematicStart(uint32 CinematicSequenceId) const
     SendDirectMessage(&data);
     if (CinematicSequencesEntry const* sequence = sCinematicSequencesStore.LookupEntry(CinematicSequenceId))
         _cinematicMgr->SetActiveCinematicCamera(sequence->cinematicCamera);
-}
-
-void Player::SendMovieStart(uint32 MovieId) const
-{
-    WorldPacket data(SMSG_TRIGGER_MOVIE, 4);
-    data << uint32(MovieId);
-    SendDirectMessage(&data);
 }
 
 void Player::CheckAreaExploreAndOutdoor()
@@ -9259,7 +9249,6 @@ void Player::ResetPetTalents()
         return;
     }
     pet->resetTalents();
-    SendTalentsInfoData(true);
 }
 
 /*********************************************************/
@@ -16088,8 +16077,6 @@ void Player::KilledPlayerCredit()
                     q_status.PlayerCount = curkill + addkillcount;
 
                     m_QuestStatusSave[questid] = QUEST_DEFAULT_SAVE_TYPE;
-
-                    SendQuestUpdateAddPlayer(qInfo, curkill, addkillcount);
                 }
 
                 if (CanCompleteQuest(questid))
@@ -16483,21 +16470,6 @@ void Player::SendQuestUpdateAddCreatureOrGo(Quest const* quest, ObjectGuid guid,
     uint16 log_slot = FindQuestSlot(quest->GetQuestId());
     if (log_slot < MAX_QUEST_LOG_SIZE)
         SetQuestSlotCounter(log_slot, creatureOrGO_idx, GetQuestSlotCounter(log_slot, creatureOrGO_idx) + add_count);
-}
-
-void Player::SendQuestUpdateAddPlayer(Quest const* quest, uint16 old_count, uint16 add_count)
-{
-    ASSERT(old_count + add_count < 65536 && "player count store in 16 bits");
-
-    WorldPacket data(SMSG_QUESTUPDATE_ADD_PVP_KILL, (3*4));
-    data << uint32(quest->GetQuestId());
-    data << uint32(old_count + add_count);
-    data << uint32(quest->GetPlayersSlain());
-    SendDirectMessage(&data);
-
-    uint16 log_slot = FindQuestSlot(quest->GetQuestId());
-    if (log_slot < MAX_QUEST_LOG_SIZE)
-        SetQuestSlotCounter(log_slot, QUEST_PVP_KILL_SLOT, GetQuestSlotCounter(log_slot, QUEST_PVP_KILL_SLOT) + add_count);
 }
 
 void Player::SendQuestGiverStatusMultiple()
@@ -19117,7 +19089,6 @@ void Player::SaveToDB(bool create /*=false*/)
     _SaveAuras(trans);
     _SaveSkills(trans);
     m_reputationMgr->SaveToDB(trans);
-    _SaveEquipmentSets(trans);
     GetSession()->SaveTutorialsData(trans);                 // changed only while character in game
     _SaveInstanceTimeRestrictions(trans);
 
@@ -19928,16 +19899,6 @@ void Player::SendDungeonDifficulty(bool IsInGroup) const
     SendDirectMessage(&data);
 }
 
-void Player::SendRaidDifficulty(bool IsInGroup, int32 forcedDifficulty) const
-{
-    uint8 val = 0x00000001;
-    WorldPacket data(MSG_SET_RAID_DIFFICULTY, 12);
-    data << uint32(forcedDifficulty == -1 ? GetRaidDifficulty() : forcedDifficulty);
-    data << uint32(val);
-    data << uint32(IsInGroup);
-    SendDirectMessage(&data);
-}
-
 void Player::SendResetFailedNotify(uint32 mapid) const
 {
     WorldPacket data(SMSG_RESET_FAILED_NOTIFY, 4);
@@ -20361,12 +20322,6 @@ void Player::AddMItem(Item* it)
 bool Player::RemoveMItem(uint32 id)
 {
     return mMitems.erase(id) ? true : false;
-}
-
-void Player::SendOnCancelExpectedVehicleRideAura() const
-{
-    WorldPacket data(SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA, 0);
-    SendDirectMessage(&data);
 }
 
 void Player::PetSpellInitialize()
@@ -22140,8 +22095,6 @@ void Player::SendInitialPacketsBeforeAddToMap()
     // SMSG_SET_FLAT_SPELL_MODIFIER
     // SMSG_UPDATE_AURA_DURATION
 
-    SendTalentsInfoData(false);
-
     // SMSG_INSTANCE_DIFFICULTY
     data.Initialize(SMSG_INSTANCE_DIFFICULTY, 4+4);
     data << uint32(GetMap()->GetDifficulty());
@@ -22156,8 +22109,6 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     SendInitialActionButtons();
     m_reputationMgr->SendInitialReputations();
-
-    SendEquipmentSetList();
 
     data.Initialize(SMSG_LOGIN_SETTIMESPEED, 4 + 4 + 4);
     data.AppendPackedTime(GameTime::GetGameTime());
@@ -22222,18 +22173,6 @@ void Player::SendInitialPacketsAfterAddToMap()
     SendItemDurations();                                    // must be after add to map
     SendQuestGiverStatusMultiple();
     SendTaxiNodeStatusMultiple();
-
-    // raid downscaling - send difficulty to player
-    if (GetMap()->IsRaid())
-    {
-        if (GetMap()->GetDifficulty() != GetRaidDifficulty())
-        {
-            StoreRaidMapDifficulty();
-            SendRaidDifficulty(GetGroup() != nullptr, GetStoredRaidDifficulty());
-        }
-    }
-    else if (GetRaidDifficulty() != GetStoredRaidDifficulty())
-        SendRaidDifficulty(GetGroup() != nullptr);
 
     if (GetPlayerSharingQuest())
     {
@@ -22625,8 +22564,8 @@ void Player::SendAurasForTarget(Unit* target) const
 
     if (target->HasAuraType(SPELL_AURA_HOVER))
         target->SetHover(true, true);
-
-    WorldPacket data(SMSG_AURA_UPDATE_ALL);
+    //[[TRINITYONE]]
+    /*WorldPacket data(SMSG_AURA_UPDATE_ALL);
     data << target->GetPackGUID();
 
     Unit::VisibleAuraMap const* visibleAuras = target->GetVisibleAuras();
@@ -22636,7 +22575,7 @@ void Player::SendAurasForTarget(Unit* target) const
         auraApp->BuildUpdatePacket(data, false);
     }
 
-    SendDirectMessage(&data);
+    SendDirectMessage(&data);*/
 }
 
 void Player::SetDailyQuestStatus(uint32 quest_id)
@@ -24795,17 +24734,6 @@ void Player::BuildPetTalentsInfoData(WorldPacket* data)
     }
 }
 
-void Player::SendTalentsInfoData(bool pet)
-{
-    WorldPacket data(SMSG_TALENTS_INFO, 50);
-    data << uint8(pet ? 1 : 0);
-    if (pet)
-        BuildPetTalentsInfoData(&data);
-    else
-        BuildPlayerTalentsInfoData(&data);
-    SendDirectMessage(&data);
-}
-
 void Player::BuildEnchantmentsInfoData(WorldPacket* data)
 {
     uint32 slotUsedMask = 0;
@@ -24847,120 +24775,6 @@ void Player::BuildEnchantmentsInfoData(WorldPacket* data)
     }
 
     data->put<uint32>(slotUsedMaskPos, slotUsedMask);
-}
-
-void Player::SendEquipmentSetList()
-{
-    uint32 count = 0;
-    WorldPacket data(SMSG_EQUIPMENT_SET_LIST, 1000); // guess size
-    size_t count_pos = data.wpos();
-    data << uint32(count);                                  // count placeholder
-
-    for (EquipmentSetContainer::value_type const& eqSet : _equipmentSets)
-    {
-        if (eqSet.second.State == EQUIPMENT_SET_DELETED)
-            continue;
-
-        data.appendPackGUID(eqSet.first);
-        data << uint32(eqSet.second.Data.SetID);
-        data << eqSet.second.Data.SetName;
-        data << eqSet.second.Data.SetIcon;
-
-        for (uint32 i = 0; i < EQUIPMENT_SLOT_END; ++i)
-        {
-            // ignored slots stored in IgnoreMask, client wants "1" as raw GUID, so no HighGuid::Item
-            if (eqSet.second.Data.IgnoreMask & (1 << i))
-                data.appendPackGUID(uint64(1));
-            else
-                data.appendPackGUID(eqSet.second.Data.Pieces[i]);
-        }
-
-        ++count;                                            // client have limit but it checked at loading and set
-    }
-    data.put<uint32>(count_pos, count);
-    SendDirectMessage(&data);
-}
-
-void Player::SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& eqSet)
-{
-    if (eqSet.Guid != 0)
-    {
-        // something wrong...
-        auto itr = _equipmentSets.find(eqSet.Guid);
-        if (itr == _equipmentSets.end() || itr->second.Data.Guid != eqSet.Guid)
-        {
-            TC_LOG_ERROR("entities.player", "Player::SetEquipmentSet: Player '%s' (%s) tried to save nonexistent equipment set " UI64FMTD " (index: %u)",
-                GetName().c_str(), GetGUID().ToString().c_str(), eqSet.Guid, eqSet.SetID);
-            return;
-        }
-    }
-
-    EquipmentSetInfo& eqSlot = _equipmentSets[eqSet.Guid];
-
-    EquipmentSetUpdateState oldState = eqSlot.State;
-    eqSlot.Data = eqSet;
-
-    if (eqSet.Guid == 0)
-    {
-        eqSlot.Data.Guid = sObjectMgr->GenerateEquipmentSetGuid();
-
-        WorldPacket data(SMSG_EQUIPMENT_SET_SAVED, 4 + 1);
-        data << uint32(eqSlot.Data.SetID);
-        data.appendPackGUID(eqSlot.Data.Guid);
-        SendDirectMessage(&data);
-    }
-
-    eqSlot.State = (oldState == EQUIPMENT_SET_NEW ? EQUIPMENT_SET_NEW : EQUIPMENT_SET_CHANGED);
-}
-
-void Player::_SaveEquipmentSets(SQLTransaction& trans)
-{
-    for (EquipmentSetContainer::iterator itr = _equipmentSets.begin(); itr != _equipmentSets.end();)
-    {
-        EquipmentSetInfo& eqSet = itr->second;
-        PreparedStatement* stmt;
-        uint8 j = 0;
-        switch (eqSet.State)
-        {
-            case EQUIPMENT_SET_UNCHANGED:
-                ++itr;
-                break;                                      // nothing do
-            case EQUIPMENT_SET_CHANGED:
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_EQUIP_SET);
-                stmt->setString(j++, eqSet.Data.SetName);
-                stmt->setString(j++, eqSet.Data.SetIcon);
-                stmt->setUInt32(j++, eqSet.Data.IgnoreMask);
-                for (uint8 i = 0; i < EQUIPMENT_SLOT_END; ++i)
-                    stmt->setUInt32(j++, eqSet.Data.Pieces[i].GetCounter());
-                stmt->setUInt32(j++, GetGUID().GetCounter());
-                stmt->setUInt64(j++, eqSet.Data.Guid);
-                stmt->setUInt32(j, eqSet.Data.SetID);
-                trans->Append(stmt);
-                eqSet.State = EQUIPMENT_SET_UNCHANGED;
-                ++itr;
-                break;
-            case EQUIPMENT_SET_NEW:
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_EQUIP_SET);
-                stmt->setUInt32(j++, GetGUID().GetCounter());
-                stmt->setUInt64(j++, eqSet.Data.Guid);
-                stmt->setUInt32(j++, eqSet.Data.SetID);
-                stmt->setString(j++, eqSet.Data.SetName);
-                stmt->setString(j++, eqSet.Data.SetIcon);
-                stmt->setUInt32(j++, eqSet.Data.IgnoreMask);
-                for (uint8 i = 0; i < EQUIPMENT_SLOT_END; ++i)
-                    stmt->setUInt32(j++, eqSet.Data.Pieces[i].GetCounter());
-                trans->Append(stmt);
-                eqSet.State = EQUIPMENT_SET_UNCHANGED;
-                ++itr;
-                break;
-            case EQUIPMENT_SET_DELETED:
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EQUIP_SET);
-                stmt->setUInt64(0, eqSet.Data.Guid);
-                trans->Append(stmt);
-                itr = _equipmentSets.erase(itr);
-                break;
-        }
-    }
 }
 
 void Player::_SaveBGData(SQLTransaction& trans)
@@ -25127,8 +24941,6 @@ void Player::UpdateSpecCount(uint8 count)
     CharacterDatabase.CommitTransaction(trans);
 
     SetSpecsCount(count);
-
-    SendTalentsInfoData(false);
 }
 
 void Player::ActivateSpec(uint8 spec)
@@ -25362,7 +25174,7 @@ void Player::SendRefundInfo(Item* item)
         return;
     }
 
-    WorldPacket data(SMSG_ITEM_REFUND_INFO_RESPONSE, 8+4+4+4+4*4+4*4+4+4);
+    /*WorldPacket data(SMSG_ITEM_REFUND_INFO_RESPONSE, 8+4+4+4+4*4+4*4+4+4);
     data << uint64(item->GetGUID());                    // item guid
     data << uint32(item->GetPaidMoney());               // money cost
     data << uint32(iece->reqhonorpoints);               // honor point cost
@@ -25373,7 +25185,7 @@ void Player::SendRefundInfo(Item* item)
         data << uint32(iece->reqitemcount[i]);
     }
     data << uint32(0);
-    SendDirectMessage(&data);
+    SendDirectMessage(&data);*/ //[[TRINITYONE]]
 }
 
 bool Player::AddItem(uint32 itemId, uint32 count)
@@ -25438,8 +25250,8 @@ void Player::RefundItem(Item* item)
             }
          }
     }
-
-    if (store_error)
+    //[[TRINITYONE]]
+    /*if (store_error)
     {
         WorldPacket data(SMSG_ITEM_REFUND_RESULT, 8+4);
         data << uint64(item->GetGUID());                 // Guid
@@ -25459,7 +25271,7 @@ void Player::RefundItem(Item* item)
         data << uint32(iece->reqitem[i]);
         data << uint32(iece->reqitemcount[i]);
     }
-    SendDirectMessage(&data);
+    SendDirectMessage(&data);*/ 
 
     uint32 moneyRefund = item->GetPaidMoney();  // item-> will be invalidated in DestroyItem
 
@@ -25605,8 +25417,8 @@ bool Player::SetDisableGravity(bool disable, bool packetOnly /*= false*/)
 {
     if (!packetOnly && !Unit::SetDisableGravity(disable))
         return false;
-
-    WorldPacket data(disable ? SMSG_MOVE_GRAVITY_DISABLE : SMSG_MOVE_GRAVITY_ENABLE, 12);
+    //[[TRINITYONE]]
+    /*WorldPacket data(disable ? SMSG_MOVE_GRAVITY_DISABLE : SMSG_MOVE_GRAVITY_ENABLE, 12);
     data << GetPackGUID();
     data << uint32(0);          //! movement counter
     SendDirectMessage(&data);
@@ -25614,7 +25426,7 @@ bool Player::SetDisableGravity(bool disable, bool packetOnly /*= false*/)
     data.Initialize(MSG_MOVE_GRAVITY_CHNG, 64);
     data << GetPackGUID();
     BuildMovementPacket(&data);
-    SendMessageToSet(&data, false);
+    SendMessageToSet(&data, false);*/
     return true;
 }
 

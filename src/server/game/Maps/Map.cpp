@@ -3616,7 +3616,7 @@ bool InstanceMap::AddPlayerToMap(Player* player)
                         }
                         // if the group/leader is permanently bound to the instance
                         // players also become permanently bound when they enter
-                        if (groupBind->perm)
+                        /*if (groupBind->perm)
                         {
                             WorldPacket data(SMSG_INSTANCE_LOCK_WARNING_QUERY, 9);
                             data << uint32(60000);
@@ -3624,7 +3624,7 @@ bool InstanceMap::AddPlayerToMap(Player* player)
                             data << uint8(0);
                             player->SendDirectMessage(&data);
                             player->SetPendingBind(mapSave->GetInstanceId(), 60000);
-                        }
+                        }*/ //[[TRINITYONE]]
                     }
                 }
                 else

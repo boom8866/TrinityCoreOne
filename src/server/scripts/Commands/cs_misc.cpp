@@ -114,7 +114,6 @@ public:
             { "unpossess",        rbac::RBAC_PERM_COMMAND_UNPOSSESS,        false, &HandleUnPossessCommand,        "" },
             { "unstuck",          rbac::RBAC_PERM_COMMAND_UNSTUCK,           true, &HandleUnstuckCommand,          "" },
             { "wchange",          rbac::RBAC_PERM_COMMAND_WCHANGE,          false, &HandleChangeWeather,           "" },
-            { "mailbox",          rbac::RBAC_PERM_COMMAND_MAILBOX,          false, &HandleMailBoxCommand,          "" },
         };
         return commandTable;
     }
@@ -2704,14 +2703,6 @@ public:
             return false;
 
         player->StopCastingBindSight();
-        return true;
-    }
-
-    static bool HandleMailBoxCommand(ChatHandler* handler, char const* /*args*/)
-    {
-        Player* player = handler->GetSession()->GetPlayer();
-
-        handler->GetSession()->SendShowMailBox(player->GetGUID());
         return true;
     }
 };
