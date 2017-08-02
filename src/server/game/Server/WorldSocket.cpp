@@ -136,8 +136,7 @@ bool WorldSocket::Update()
 
 void WorldSocket::HandleSendAuthSession()
 {
-    WorldPacket packet(SMSG_AUTH_CHALLENGE, 37);
-    packet << uint32(1);                                    // 1...31
+    WorldPacket packet(SMSG_AUTH_CHALLENGE, 36);
     packet << uint32(_authSeed);
 
     BigNumber seed1;
@@ -244,14 +243,9 @@ bool WorldSocket::ReadHeaderHandler()
 
 struct AuthSession
 {
-    uint32 BattlegroupID = 0;
-    uint32 LoginServerType = 0;
-    uint32 RealmID = 0;
     uint32 Build = 0;
     uint32 LocalChallenge = 0;
     uint32 LoginServerID = 0;
-    uint32 RegionID = 0;
-    uint64 DosResponse = 0;
     uint8 Digest[SHA_DIGEST_LENGTH] = {};
     std::string Account;
     ByteBuffer AddonInfo;
@@ -431,12 +425,8 @@ void WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     recvPacket >> authSession->Build;
     recvPacket >> authSession->LoginServerID;
     recvPacket >> authSession->Account;
-    recvPacket >> authSession->LoginServerType;
     recvPacket >> authSession->LocalChallenge;
-    recvPacket >> authSession->RegionID;
-    recvPacket >> authSession->BattlegroupID;
-    recvPacket >> authSession->RealmID;               // realmId from auth_database.realmlist table
-    recvPacket >> authSession->DosResponse;
+
     recvPacket.read(authSession->Digest, 20);
     authSession->AddonInfo.append(recvPacket.contents() + recvPacket.rpos(), recvPacket.size() - recvPacket.rpos());
 
@@ -480,15 +470,6 @@ void WorldSocket::HandleAuthSessionCallback(std::shared_ptr<AuthSession> authSes
     {
         SendAuthResponseError(AUTH_REJECT);
         TC_LOG_ERROR("network", "WorldSocket::HandleAuthSession: World closed, denying client (%s).", GetRemoteIpAddress().to_string().c_str());
-        DelayedCloseSocket();
-        return;
-    }
-
-    if (authSession->RealmID != realm.Id.Realm)
-    {
-        SendAuthResponseError(REALM_LIST_REALM_NOT_FOUND);
-        TC_LOG_ERROR("network", "WorldSocket::HandleAuthSession: Client %s requested connecting with realm id %u but this realm has id %u set in config.",
-            GetRemoteIpAddress().to_string().c_str(), authSession->RealmID, realm.Id.Realm);
         DelayedCloseSocket();
         return;
     }

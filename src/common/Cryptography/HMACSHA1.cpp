@@ -23,19 +23,22 @@
 
 HmacHash::HmacHash(uint32 len, uint8* seed)
 {
+    ASSERT(len == SEED_KEY_SIZE);
+    
+    memcpy(&m_key, seed, len);
     HMAC_CTX_init(&m_ctx);
-    HMAC_Init_ex(&m_ctx, seed, len, EVP_sha1(), nullptr);
-    memset(m_digest, 0, sizeof(m_digest));
+    HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
 }
 
 HmacHash::~HmacHash()
 {
+    memset(&m_key, 0x00, SEED_KEY_SIZE);
     HMAC_CTX_cleanup(&m_ctx);
 }
 
-void HmacHash::UpdateData(std::string const& str)
+void HmacHash::UpdateBigNumber(BigNumber* bn)
 {
-    HMAC_Update(&m_ctx, (uint8 const*)str.c_str(), str.length());
+    UpdateData(bn->AsByteArray().get(), bn->GetNumBytes());
 }
 
 void HmacHash::UpdateData(uint8 const* data, size_t len)
@@ -43,16 +46,14 @@ void HmacHash::UpdateData(uint8 const* data, size_t len)
     HMAC_Update(&m_ctx, data, len);
 }
 
+void HmacHash::Initialize()
+{
+    HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
+}
+
 void HmacHash::Finalize()
 {
     uint32 length = 0;
     HMAC_Final(&m_ctx, (uint8*)m_digest, &length);
     ASSERT(length == SHA_DIGEST_LENGTH);
-}
-
-uint8 *HmacHash::ComputeHash(BigNumber* bn)
-{
-    HMAC_Update(&m_ctx, bn->AsByteArray().get(), bn->GetNumBytes());
-    Finalize();
-    return (uint8*)m_digest;
 }

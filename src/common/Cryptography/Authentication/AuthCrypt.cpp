@@ -22,54 +22,53 @@
 
 #include <cstring>
 
-AuthCrypt::AuthCrypt() :
-    _clientDecrypt(SHA_DIGEST_LENGTH), _serverEncrypt(SHA_DIGEST_LENGTH),
-    _initialized(false)
-{ }
+const static size_t CRYPTED_SEND_LEN = 4;
+const static size_t CRYPTED_RECV_LEN = 6;
 
-void AuthCrypt::Init(BigNumber* K)
-{
-    uint8 ServerEncryptionKey[SEED_KEY_SIZE] = { 0xCC, 0x98, 0xAE, 0x04, 0xE8, 0x97, 0xEA, 0xCA, 0x12, 0xDD, 0xC0, 0x93, 0x42, 0x91, 0x53, 0x57 };
-    HmacHash serverEncryptHmac(SEED_KEY_SIZE, (uint8*)ServerEncryptionKey);
-    uint8 *encryptHash = serverEncryptHmac.ComputeHash(K);
-
-    uint8 ServerDecryptionKey[SEED_KEY_SIZE] = { 0xC2, 0xB3, 0x72, 0x3C, 0xC6, 0xAE, 0xD9, 0xB5, 0x34, 0x3C, 0x53, 0xEE, 0x2F, 0x43, 0x67, 0xCE };
-    HmacHash clientDecryptHmac(SEED_KEY_SIZE, (uint8*)ServerDecryptionKey);
-    uint8 *decryptHash = clientDecryptHmac.ComputeHash(K);
-
-    //ARC4 _serverDecrypt(encryptHash);
-    _clientDecrypt.Init(decryptHash);
-    _serverEncrypt.Init(encryptHash);
-    //ARC4 _clientEncrypt(decryptHash);
-
-    // Drop first 1024 bytes, as WoW uses ARC4-drop1024.
-    uint8 syncBuf[1024];
-    memset(syncBuf, 0, 1024);
-
-    _serverEncrypt.UpdateData(1024, syncBuf);
-    //_clientEncrypt.UpdateData(1024, syncBuf);
-
-    memset(syncBuf, 0, 1024);
-
-    //_serverDecrypt.UpdateData(1024, syncBuf);
-    _clientDecrypt.UpdateData(1024, syncBuf);
-
-    _initialized = true;
-}
+AuthCrypt::AuthCrypt() : _initialized(false) {}
 
 void AuthCrypt::DecryptRecv(uint8 *data, size_t len)
 {
-    if (!_initialized)
-        return;
+    if (!_initialized) return;
+    if (len < CRYPTED_RECV_LEN) return;
 
-    _clientDecrypt.UpdateData(len, data);
+    for (size_t t = 0; t < CRYPTED_RECV_LEN; t++)
+    {
+        _recv_i %= _key.size();
+        uint8 x = (data[t] - _recv_j) ^ _key[_recv_i];
+        ++_recv_i;
+        _recv_j = data[t];
+        data[t] = x;
+    }
 }
 
 void AuthCrypt::EncryptSend(uint8 *data, size_t len)
 {
-    if (!_initialized)
-        return;
+    if (!_initialized) return;
+    if (len < CRYPTED_SEND_LEN) return;
 
-    _serverEncrypt.UpdateData(len, data);
+    for (size_t t = 0; t < CRYPTED_SEND_LEN; t++)
+    {
+        _send_i %= _key.size();
+        uint8 x = (data[t] ^ _key[_send_i]) + _send_j;
+        ++_send_i;
+        data[t] = _send_j = x;
+    }
 }
 
+void AuthCrypt::Init(BigNumber* K)
+{
+    uint8* key = new uint8[SHA_DIGEST_LENGTH];
+    uint8 recvSeed[SEED_KEY_SIZE] = { 0x38, 0xA7, 0x83, 0x15, 0xF8, 0x92, 0x25, 0x30, 0x71, 0x98, 0x67, 0xB1, 0x8C, 0x4, 0xE2, 0xAA };
+    HmacHash recvHash(SEED_KEY_SIZE, (uint8*)recvSeed);
+    recvHash.UpdateBigNumber(K);
+    recvHash.Finalize();
+    memcpy(key, recvHash.GetDigest(), SHA_DIGEST_LENGTH);
+    _key.resize(SHA_DIGEST_LENGTH);
+    std::copy(key, key + SHA_DIGEST_LENGTH, _key.begin());
+    delete[] key;
+
+    _send_i = _send_j = _recv_i = _recv_j = 0;
+
+    _initialized = true;
+}

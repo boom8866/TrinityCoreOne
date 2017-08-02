@@ -19,7 +19,8 @@
 #ifndef _AUTHCRYPT_H
 #define _AUTHCRYPT_H
 
-#include "Cryptography/ARC4.h"
+#include <Common.h>
+#include <vector>
 
 class BigNumber;
 
@@ -35,8 +36,8 @@ class TC_COMMON_API AuthCrypt
         bool IsInitialized() const { return _initialized; }
 
     private:
-        ARC4 _clientDecrypt;
-        ARC4 _serverEncrypt;
+        std::vector<uint8> _key;
+        uint8 _send_i, _send_j, _recv_i, _recv_j;
         bool _initialized;
 };
 #endif

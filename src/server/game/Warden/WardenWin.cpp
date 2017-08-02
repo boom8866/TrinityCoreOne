@@ -49,7 +49,7 @@ void WardenWin::Init(WorldSession* session, BigNumber* k)
 
     memcpy(_seed, Module.Seed, 16);
 
-    _inputCrypto.Init(_inputKey);
+    /*_inputCrypto.Init(_inputKey);
     _outputCrypto.Init(_outputKey);
     TC_LOG_DEBUG("warden", "Server side warden for client %u initializing...", session->GetAccountId());
     TC_LOG_DEBUG("warden", "C->S Key: %s", ByteArrayToHexStr(_inputKey, 16).c_str());
@@ -61,7 +61,7 @@ void WardenWin::Init(WorldSession* session, BigNumber* k)
 
     TC_LOG_DEBUG("warden", "Module Key: %s", ByteArrayToHexStr(_module->Key, 16).c_str());
     TC_LOG_DEBUG("warden", "Module ID: %s", ByteArrayToHexStr(_module->Id, 16).c_str());
-    RequestModule();
+    RequestModule();*/
 }
 
 ClientWardenModule* WardenWin::GetModuleForClient()
@@ -163,8 +163,8 @@ void WardenWin::HandleHashResult(ByteBuffer &buff)
     memcpy(_inputKey, Module.ClientKeySeed, 16);
     memcpy(_outputKey, Module.ServerKeySeed, 16);
 
-    _inputCrypto.Init(_inputKey);
-    _outputCrypto.Init(_outputKey);
+    //_inputCrypto.Init(_inputKey);
+    //_outputCrypto.Init(_outputKey);
 
     _initialized = true;
 
@@ -263,7 +263,7 @@ void WardenWin::RequestData()
             case PAGE_CHECK_A:
             case PAGE_CHECK_B:
             {
-                buff.append(wd->Data.AsByteArray(0, false).get(), wd->Data.GetNumBytes());
+                //buff.append(wd->Data.AsByteArray(0, false).get(), wd->Data.GetNumBytes());
                 buff << uint32(wd->Address);
                 buff << uint8(wd->Length);
                 break;
@@ -276,7 +276,7 @@ void WardenWin::RequestData()
             }
             case DRIVER_CHECK:
             {
-                buff.append(wd->Data.AsByteArray(0, false).get(), wd->Data.GetNumBytes());
+                //buff.append(wd->Data.AsByteArray(0, false).get(), wd->Data.GetNumBytes());
                 buff << uint8(index++);
                 break;
             }
@@ -285,7 +285,7 @@ void WardenWin::RequestData()
                 uint32 seed = rand32();
                 buff << uint32(seed);
                 HmacHash hmac(4, (uint8*)&seed);
-                hmac.UpdateData(wd->Str);
+                //hmac.UpdateData(wd->Str);
                 hmac.Finalize();
                 buff.append(hmac.GetDigest(), hmac.GetLength());
                 break;
@@ -392,13 +392,13 @@ void WardenWin::HandleData(ByteBuffer &buff)
                     continue;
                 }
 
-                if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false).get(), rd->Length) != 0)
+                /*if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false).get(), rd->Length) != 0)
                 {
                     TC_LOG_DEBUG("warden", "RESULT MEM_CHECK fail CheckId %u account Id %u", *itr, _session->GetAccountId());
                     checkFailed = *itr;
                     buff.rpos(buff.rpos() + rd->Length);
                     continue;
-                }
+                }*/
 
                 buff.rpos(buff.rpos() + rd->Length);
                 TC_LOG_DEBUG("warden", "RESULT MEM_CHECK passed CheckId %u account Id %u", *itr, _session->GetAccountId());
@@ -471,13 +471,13 @@ void WardenWin::HandleData(ByteBuffer &buff)
                     continue;
                 }
 
-                if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false).get(), 20) != 0) // SHA1
+                /*if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false).get(), 20) != 0) // SHA1
                 {
                     TC_LOG_DEBUG("warden", "RESULT MPQ_CHECK fail, CheckId %u account Id %u", *itr, _session->GetAccountId());
                     checkFailed = *itr;
                     buff.rpos(buff.rpos() + 20);            // 20 bytes SHA1
                     continue;
-                }
+                }*/
 
                 buff.rpos(buff.rpos() + 20);                // 20 bytes SHA1
                 TC_LOG_DEBUG("warden", "RESULT MPQ_CHECK passed, CheckId %u account Id %u", *itr, _session->GetAccountId());

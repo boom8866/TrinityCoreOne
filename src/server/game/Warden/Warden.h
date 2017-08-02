@@ -20,7 +20,6 @@
 #define _WARDEN_BASE_H
 
 #include <map>
-#include "Cryptography/ARC4.h"
 #include "Cryptography/BigNumber.h"
 #include "ByteBuffer.h"
 #include "WardenCheckMgr.h"
@@ -126,8 +125,6 @@ class TC_GAME_API Warden
         uint8 _inputKey[16];
         uint8 _outputKey[16];
         uint8 _seed[16];
-        ARC4 _inputCrypto;
-        ARC4 _outputCrypto;
         uint32 _checkTimer;                          // Timer for sending check requests
         uint32 _clientResponseTimer;                 // Timer for client response delay
         bool _dataSent;

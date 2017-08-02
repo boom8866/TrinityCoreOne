@@ -173,7 +173,7 @@ bool BigNumber::IsNegative() const
     return BN_is_negative(_bn);
 }
 
-std::unique_ptr<uint8[]> BigNumber::AsByteArray(int32 minSize, bool littleEndian)
+std::unique_ptr<uint8[]> BigNumber::AsByteArray(int32 minSize)
 {
     int numBytes = GetNumBytes();
     int length = (minSize >= numBytes) ? minSize : numBytes;
@@ -186,9 +186,7 @@ std::unique_ptr<uint8[]> BigNumber::AsByteArray(int32 minSize, bool littleEndian
 
     BN_bn2bin(_bn, (unsigned char *)array);
 
-    // openssl's BN stores data internally in big endian format, reverse if little endian desired
-    if (littleEndian)
-        std::reverse(array, array + numBytes);
+    std::reverse(array, array + numBytes);
 
     std::unique_ptr<uint8[]> ret(array);
     return ret;
