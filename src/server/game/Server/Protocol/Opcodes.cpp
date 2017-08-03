@@ -183,13 +183,13 @@ void OpcodeTable::Initialize()
     /*0x033*/ //DEFINE_HANDLER(CMSG_AUTH_SRP6_BEGIN,                         STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     /*0x034*/ //DEFINE_HANDLER(CMSG_AUTH_SRP6_PROOF,                         STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     /*0x035*/ //DEFINE_HANDLER(CMSG_AUTH_SRP6_RECODE,                        STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
-    /*0x036*/ //DEFINE_HANDLER(CMSG_CHAR_CREATE,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharCreateOpcode          );
-    /*0x037*/ //DEFINE_HANDLER(CMSG_CHAR_ENUM,                               STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharEnumOpcode            );
-    /*0x038*/ //DEFINE_HANDLER(CMSG_CHAR_DELETE,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharDeleteOpcode          );
+    /*0x036*/ DEFINE_HANDLER(CMSG_CHAR_CREATE,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharCreateOpcode          );
+    /*0x037*/ DEFINE_HANDLER(CMSG_CHAR_ENUM,                               STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharEnumOpcode            );
+    /*0x038*/ DEFINE_HANDLER(CMSG_CHAR_DELETE,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharDeleteOpcode          );
     /*0x039*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_AUTH_SRP6_RESPONSE,        STATUS_NEVER);
-    /*0x03A*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_CREATE,               STATUS_NEVER);
-    /*0x03B*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_ENUM,                 STATUS_NEVER);
-    /*0x03C*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_DELETE,               STATUS_NEVER);
+    /*0x03A*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_CREATE,               STATUS_NEVER);
+    /*0x03B*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_ENUM,                 STATUS_NEVER);
+    /*0x03C*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_CHAR_DELETE,               STATUS_NEVER);
     /*0x03D*/ //DEFINE_HANDLER(CMSG_PLAYER_LOGIN,                            STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandlePlayerLoginOpcode         );
     /*0x03E*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_NEW_WORLD,                 STATUS_NEVER);
     /*0x03F*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_TRANSFER_PENDING,          STATUS_NEVER);
@@ -1037,7 +1037,7 @@ void OpcodeTable::Initialize()
     /*0x389*/ //DEFINE_HANDLER(CMSG_SET_TAXI_BENCHMARK_MODE,                 STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleSetTaxiBenchmarkOpcode    );
     /*0x38A*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_JOINED_BATTLEGROUND_QUEUE, STATUS_NEVER);
     /*0x38B*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_REALM_SPLIT,               STATUS_NEVER);
-    /*0x38C*/ //DEFINE_HANDLER(CMSG_REALM_SPLIT,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleRealmSplitOpcode          );
+    /*0x38C*/ DEFINE_HANDLER(CMSG_REALM_SPLIT,                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleRealmSplitOpcode          );
     /*0x38D*/ //DEFINE_HANDLER(CMSG_MOVE_CHNG_TRANSPORT,                     STATUS_LOGGEDIN, PROCESS_THREADSAFE,   &WorldSession::HandleMovementOpcodes           );
     /*0x38E*/ //DEFINE_HANDLER(MSG_PARTY_ASSIGNMENT,                         STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePartyAssignmentOpcode     );
     /*0x38F*/ //DEFINE_SERVER_OPCODE_HANDLER(SMSG_OFFER_PETITION_ERROR,      STATUS_NEVER);
